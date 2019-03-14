@@ -1,5 +1,3 @@
-import { prettyPrint } from '../../util'
-
 const docker = require('../docker')
 const channelRepository = require('../../../db/repositories/channel')
 const phoneNumberRepository = require('../../../db/repositories/phoneNumber')
