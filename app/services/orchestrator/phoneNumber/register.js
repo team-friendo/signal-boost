@@ -1,4 +1,4 @@
-import fs from 'fs-extra'
+const fs = require('fs-extra')
 const { get, without } = require('lodash')
 const { errors, statuses, errorStatus, extractStatus } = require('./common')
 const util = require('../../util')
