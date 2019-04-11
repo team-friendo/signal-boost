@@ -41,23 +41,17 @@ const parseCommand = msg => {
   else return { command: commands.NOOP }
 }
 
-const execute = ({ command, payload, db, channel, sender }) => {
-  switch (command) {
-    case commands.ADD_ADMIN:
-      return maybeAddAdmin(db, channel, sender, payload)
-    case commands.INFO:
-      return maybeShowInfo(db, channel, sender)
-    case commands.JOIN:
-      return maybeAddSubscriber(db, channel, sender)
-    case commands.LEAVE:
-      return maybeRemoveSubscriber(db, channel, sender)
-    case commands.RENAME:
-      return maybeRenameChannel(db, channel, sender, payload)
-    case commands.REMOVE_ADMIN:
-      return maybeRemoveAdmin(db, channel, sender, payload)
-    default:
-      return noop()
-  }
+const execute = async dispatchable => {
+  const { command, payload, db, channel, sender } = dispatchable
+  const result = await ({
+    [commands.ADD_ADMIN]: () => maybeAddAdmin(db, channel, sender, payload),
+    [commands.INFO]: () => maybeShowInfo(db, channel, sender),
+    [commands.JOIN]: () => maybeAddSubscriber(db, channel, sender),
+    [commands.LEAVE]: () => maybeRemoveSubscriber(db, channel, sender),
+    [commands.RENAME]: () => maybeRenameChannel(db, channel, sender, payload),
+    [commands.REMOVE_ADMIN]: () => maybeRemoveAdmin(db, channel, sender, payload),
+  }[command] || noop)()
+  return { commandResult: { ...result, command }, dispatchable }
 }
 
 // PRIVATE FUNCTIONS
