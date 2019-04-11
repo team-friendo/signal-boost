@@ -198,11 +198,11 @@ describe('executor service', () => {
           expect(addSubscriberStub.callCount).to.eql(0)
         })
 
-        it('returns SUCCESS status / NOOP message', () => {
+        it('returns NOOP status/message', () => {
           expect(result).to.eql({
             commandResult: {
               command: commands.JOIN,
-              status: statuses.SUCCESS,
+              status: statuses.NOOP,
               message: CR.subscriber.add.noop,
             },
             dispatchable,
@@ -269,12 +269,12 @@ describe('executor service', () => {
             expect(removeSubscriberStub.callCount).to.eql(0)
           })
 
-          it('returns SUCCESS status / NOOP message', () => {
+          it('returns UNAUTHORIZED status/message', () => {
             expect(result).to.eql({
               commandResult: {
                 command: commands.LEAVE,
-                status: statuses.SUCCESS,
-                message: CR.subscriber.remove.noop,
+                status: statuses.UNAUTHORIZED,
+                message: CR.subscriber.remove.unauthorized,
               },
               dispatchable,
             })
@@ -330,7 +330,7 @@ describe('executor service', () => {
                   commandResult: {
                     command: commands.ADD_ADMIN,
                     status: statuses.ERROR,
-                    message: CR.admin.add.error(payload),
+                    message: CR.admin.add.dbError(payload),
                   },
                   dispatchable,
                 })
@@ -347,12 +347,12 @@ describe('executor service', () => {
               expect(addAdminStub.callCount).to.eql(0)
             })
 
-            it('returns a SUCCESS status / INVALID_NUMBER message', () => {
+            it('returns a ERROR status/message', () => {
               expect(result).to.eql({
                 commandResult: {
                   command: commands.ADD_ADMIN,
-                  status: statuses.SUCCESS,
-                  message: CR.admin.add.noop.invalidNumber('foo'),
+                  status: statuses.ERROR,
+                  message: CR.admin.add.invalidNumber('foo'),
                 },
                 dispatchable,
               })
@@ -374,12 +374,12 @@ describe('executor service', () => {
             expect(addAdminStub.callCount).to.eql(0)
           })
 
-          it('returns an SUCCESS status / not admin NOOP message', () => {
+          it('returns an UNAUTHORIZED status/message', () => {
             expect(result).to.eql({
               commandResult: {
                 command: commands.ADD_ADMIN,
-                status: statuses.SUCCESS,
-                message: CR.admin.add.noop.notAdmin,
+                status: statuses.UNAUTHORIZED,
+                message: CR.admin.add.unauthorized,
               },
               dispatchable,
             })
@@ -437,13 +437,13 @@ describe('executor service', () => {
               describe('when removing the admin fails', () => {
                 beforeEach(() => removeAdminStub.callsFake(() => Promise.reject('oh noes!')))
 
-                it('returns an ERROR status and message', async () => {
+                it('returns an ERROR status/message', async () => {
                   const dispatchable = { command: commands.REMOVE_ADMIN, payload, channel, sender }
                   expect(await execute(dispatchable)).to.eql({
                     commandResult: {
                       command: commands.REMOVE_ADMIN,
                       status: statuses.ERROR,
-                      message: CR.admin.remove.error(payload),
+                      message: CR.admin.remove.dbError(payload),
                     },
                     dispatchable,
                   })
@@ -463,8 +463,8 @@ describe('executor service', () => {
                 expect(await execute(dispatchable)).to.eql({
                   commandResult: {
                     command: commands.REMOVE_ADMIN,
-                    status: statuses.SUCCESS,
-                    message: CR.admin.remove.noop.targetNotAdmin(payload),
+                    status: statuses.ERROR,
+                    message: CR.admin.remove.targetNotAdmin(payload),
                   },
                   dispatchable,
                 })
@@ -485,8 +485,8 @@ describe('executor service', () => {
               expect(result).to.eql({
                 commandResult: {
                   command: commands.REMOVE_ADMIN,
-                  status: statuses.SUCCESS,
-                  message: CR.admin.remove.noop.invalidNumber('foo'),
+                  status: statuses.ERROR,
+                  message: CR.admin.remove.invalidNumber('foo'),
                 },
                 dispatchable,
               })
@@ -509,8 +509,8 @@ describe('executor service', () => {
             expect(result).to.eql({
               commandResult: {
                 command: commands.REMOVE_ADMIN,
-                status: statuses.SUCCESS,
-                message: CR.admin.remove.noop.senderNotAdmin,
+                status: statuses.UNAUTHORIZED,
+                message: CR.admin.remove.unauthorized,
               },
               dispatchable,
             })
@@ -551,13 +551,13 @@ describe('executor service', () => {
 
         describe('when sender is neither admin nor subscriber', () => {
           const sender = randomPerson
-          it('sends an error message', async () => {
+          it('sends an UNAUTHORIZED message', async () => {
             const dispatchable = { command: commands.INFO, db, channel, sender }
             expect(await execute(dispatchable)).to.eql({
               commandResult: {
                 command: commands.INFO,
-                status: statuses.SUCCESS,
-                message: CR.info.noop,
+                status: statuses.UNAUTHORIZED,
+                message: CR.info.unauthorized,
               },
               dispatchable,
             })

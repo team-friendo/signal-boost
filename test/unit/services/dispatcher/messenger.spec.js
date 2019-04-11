@@ -65,7 +65,7 @@ describe('messenger service', () => {
     describe('when message is a command that was executed', () => {
       beforeEach(async () => {
         await messenger.dispatch(
-          { status: statuses.SUCCESS, message: 'yay you joined!' },
+          { command: commands.JOIN, status: statuses.SUCCESS, message: 'yay you joined!' },
           { db, iface, channel, sender: adminSender, message: commands.JOIN },
         )
       })
@@ -145,17 +145,30 @@ describe('messenger service', () => {
     })
   })
 
-  describe('helpers', () => {
-    describe('#prefix', () => {
-      describe('when message starts with [NOPREFIX] flag', () => {
-        it('does not prefix the message and erases the flag', () => {
-          expect(messenger.prefix(channel, '[NOPREFIX]hello world')).to.eql('hello world')
-        })
+  describe('formatting messages', () => {
+    describe('broadcast messages', () => {
+      it('adds a prefix', () => {
+        expect(messenger.format(channel, 'blah')).to.eql('[foobar]\nblah')
       })
-      describe('when message does not have a flag', () => {
-        it('prefixes message with channel name', () => {
-          expect(messenger.prefix(channel, 'hello world')).to.eql('[foobar]\nhello world')
-        })
+    })
+    describe('most commands', () => {
+      it('adds a prefix', () => {
+        expect(messenger.format(channel, 'blah', 'JOIN', 'SUCCESS')).to.eql('[foobar]\nblah')
+      })
+    })
+    describe('when message is the response to a RENAME comand', () => {
+      it('does not add a prefix', () => {
+        expect(messenger.format(channel, 'blah', 'RENAME', 'SUCCESS')).to.eql('blah')
+      })
+    })
+    describe('when the message is the response to an unauthorized command attempt', () => {
+      it('does not add a prefix', () => {
+        expect(messenger.format(channel, 'blah', 'INFO', 'UNAUTHORIZED')).to.eql('blah')
+      })
+    })
+    describe('when there is no command but status is UNAUHTORIZED', () => {
+      it('does not add a prefix', () => {
+        expect(messenger.format(channel, 'blah', 'INFO', 'UNAUTHORIZED')).to.eql('blah')
       })
     })
   })
