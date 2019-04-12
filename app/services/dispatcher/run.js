@@ -49,14 +49,12 @@ const run = async db => {
 }
 
 const handleMessage = async (db, iface, payload) => {
+  const channel = await channelRepository.findByPhoneNumber(db, channelPhoneNumber)
+  const sender = await authenticateSender(db, channelPhoneNumber, payload.sender)
+  const dispatchable = { ...payload, db, iface, channel, sender }
+
   logger.log(`Dispatching message on channel: ${channelPhoneNumber}`)
-  const [channel, sender] = await Promise.all([
-    channelRepository.findDeep(db, channelPhoneNumber),
-    authenticateSender(db, channelPhoneNumber, payload.sender),
-  ])
-  return messenger.dispatch(
-    await executor.processCommand({ ...payload, db, iface, channel, sender }),
-  )
+  return messenger.dispatch(await executor.processCommand(dispatchable), dispatchable)
 }
 
 const authenticateSender = async (db, channelPhoneNumber, sender) => ({

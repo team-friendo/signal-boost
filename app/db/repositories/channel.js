@@ -16,14 +16,7 @@ const update = (db, phoneNumber, attrs) =>
     .then(([_, [pNumInstance]]) => pNumInstance)
 
 const findAll = db => db.channel.findAll()
-
 const findByPhoneNumber = (db, phoneNumber) => db.channel.findOne({ where: { phoneNumber } })
-
-const findDeep = (db, phoneNumber) =>
-  db.channel.findOne({
-    where: { phoneNumber },
-    include: [{ model: db.subscription }, { model: db.administration }],
-  })
 
 // CHANNEL ASSOCIATION QUERIES
 
@@ -84,7 +77,6 @@ module.exports = {
   updateOrCreate,
   findAll,
   findByPhoneNumber,
-  findDeep,
   addAdmin,
   addAdmins,
   removeAdmin,

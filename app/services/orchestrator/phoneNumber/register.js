@@ -40,10 +40,7 @@ const register = ({ db, emitter, phoneNumber }) =>
   util
     .exec(`signal-cli -u ${phoneNumber} register`)
     .then(() => recordStatusChange(db, phoneNumber, statuses.REGISTERED))
-    .catch(err => {
-      // TODO(@zig): add prometheus error count here (counter: signal_register_error)
-      return errorStatus(errors.registrationFailed(err), phoneNumber)
-    })
+    .catch(err => errorStatus(errors.registrationFailed(err), phoneNumber))
     .then(maybeListenForVerification({ emitter, phoneNumber }))
 
 // ({Database, Emitter, string, string}) => Promise<Boolean>
@@ -52,15 +49,14 @@ const verify = ({ db, emitter, phoneNumber, verificationMessage }) =>
     .exec(`signal-cli -u ${phoneNumber} verify ${parseVerificationCode(verificationMessage)}`)
     .then(() => recordStatusChange(db, phoneNumber, statuses.VERIFIED))
     .then(phoneNumberStatus => Promise.resolve(emitter.emit('verified', phoneNumberStatus)))
-    .catch(err => {
-      // TODO(@zig): add promethues error count here (counter: signal_verify_error)
-      return Promise.reject(
+    .catch(err =>
+      Promise.reject(
         emitter.emit(
           'verificationFailed',
           errorStatus(errors.verificationFailed(err), phoneNumber),
         ),
-      )
-    })
+      ),
+    )
 
 // HELPERS
 
