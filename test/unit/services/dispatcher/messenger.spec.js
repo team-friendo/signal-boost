@@ -64,10 +64,10 @@ describe('messenger service', () => {
   describe('dispatching a message', () => {
     describe('when message is a command that was executed', () => {
       beforeEach(async () => {
-        await messenger.dispatch(
-          { command: commands.JOIN, status: statuses.SUCCESS, message: 'yay you joined!' },
-          { db, iface, channel, sender: adminSender, message: commands.JOIN },
-        )
+        await messenger.dispatch({
+          dispatchable: { db, iface, channel, sender: adminSender, message: commands.JOIN },
+          commandResult: { command: commands.JOIN, status: statuses.SUCCESS, message: 'yay!' },
+        })
       })
 
       it('does not broadcast a message', () => {
@@ -81,7 +81,7 @@ describe('messenger service', () => {
       it('sends a command result to the message sender', () => {
         expect(sendMessageStub.getCall(0).args).to.eql([
           iface,
-          '[foobar]\nyay you joined!',
+          '[foobar]\nyay!',
           [adminSender.phoneNumber],
         ])
       })
@@ -95,10 +95,10 @@ describe('messenger service', () => {
       describe('when sender is an admin', () => {
         beforeEach(
           async () =>
-            await messenger.dispatch(
-              { status: statuses.NOOP, message: messages.noop },
-              { db, iface, channel, sender: adminSender, message, attachments },
-            ),
+            await messenger.dispatch({
+              commandResult: { status: statuses.NOOP, message: messages.noop },
+              dispatchable: { db, iface, channel, sender: adminSender, message, attachments },
+            }),
         )
         it('does not respond to the sender', () => {
           expect(respondSpy.callCount).to.eql(0)
@@ -124,10 +124,10 @@ describe('messenger service', () => {
 
       describe('when sender is not an admin', () => {
         beforeEach(async () => {
-          await messenger.dispatch(
-            { status: statuses.NOOP, message: messages.noop },
-            { db, iface, channel, sender: subscriberSender, message: 'please help!' },
-          )
+          await messenger.dispatch({
+            commandResult: { status: statuses.NOOP, message: messages.noop },
+            dispatchable: { db, iface, channel, sender: subscriberSender, message: 'please help!' },
+          })
         })
 
         it('does not broadcast a message', () => {
@@ -137,7 +137,7 @@ describe('messenger service', () => {
         it('sends an error message to the message sender', () => {
           expect(sendMessageStub.getCall(0).args).to.eql([
             iface,
-            messenger.prefix(channel, messages.notAdmin),
+            messages.unauthorized,
             [subscriberSender.phoneNumber],
           ])
         })

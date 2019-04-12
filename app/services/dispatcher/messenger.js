@@ -4,7 +4,7 @@ const { commands, statuses } = require('./executor')
 const messageCountRepository = require('../../db/repositories/messageCount')
 
 // (CommandResult, Dispatchable) -> Promise<void>
-const dispatch = async (commandResult, dispatchable) => {
+const dispatch = async ({ commandResult, dispatchable }) => {
   const { command, status } = commandResult
   const isBroadcastMessage = status === statuses.NOOP
   return isBroadcastMessage
@@ -14,7 +14,7 @@ const dispatch = async (commandResult, dispatchable) => {
     : respond({ ...dispatchable, message: commandResult.message, command, status })
 }
 
-// Dispatchable -> Promise<voic>
+// Dispatchable -> Promise<void>
 const broadcast = async ({ db, iface, channel, message, attachments }) => {
   const recipients = channel.subscriptions.map(s => s.humanPhoneNumber)
   return signal
