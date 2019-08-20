@@ -1,3 +1,4 @@
+/* eslint no-case-declarations: 0 */
 const { get } = require('lodash')
 const signal = require('../signal')
 const channelRepository = require('./../../db/repositories/channel')
@@ -27,6 +28,11 @@ const logger = require('./logger')
  * }
  */
 
+const dispatchActions = {
+  RELAY: 'RELAY',
+  REPAIR_TRUST: 'REPAIR_TRUST',
+}
+
 // INITIALIZATION
 
 const run = async (db, sock) => {
@@ -45,31 +51,46 @@ const run = async (db, sock) => {
 
 const listenForInboundMessages = async (db, sock, channels) =>
   Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber))).then(listening => {
-    sock.on('data', inboundMsg => dispatch(db, sock, parseMessage(inboundMsg)))
+    sock.on('data', inboundMsg => dispatch(db, sock, parseSdMessage(inboundMsg)))
     return listening
   })
 
 // MESSAGE DISPATCH
 
-const dispatch = async (db, sock, inboundMsg) => {
-  if (shouldRelay(inboundMsg)) {
-    const channelPhoneNumber = inboundMsg.data.username
-    const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
-    try {
-      const [channel, sender] = await Promise.all([
-        channelRepository.findDeep(db, channelPhoneNumber),
-        classifySender(db, channelPhoneNumber, inboundMsg.data.source),
-      ])
-      return messenger.dispatch(
-        await executor.processCommand({ db, sock, channel, sender, sdMessage }),
-      )
-    } catch (e) {
-      logger.error(e)
+const dispatch = async (db, sock, inboundSdMsg) => {
+  const dispatchAction = parseDistpatchAction(inboundSdMsg)
+  if (!dispatchAction) return
+  try {
+    switch (dispatchAction) {
+      case dispatchAction.RELAY:
+        return dispatchRelay(db, sock, inboundSdMsg)
+      case dispatchAction.REPAIR_TRUST:
+        return dispatchRepairTrust(sock, inboundSdMsg)
     }
+  } catch (e) {
+    logger.error(e)
   }
 }
 
-const parseMessage = inboundMsg => {
+const dispatchRelay = async (db, sock, sdMessage) => {
+  const [channel, sender] = await parseChannelAndSender(sdMessage)
+  return messenger.dispatch(
+    await executor.processCommand({
+      db,
+      sock,
+      channel,
+      sender,
+      sdMessage: signal.parseOutboundSdMessage(sdMessage),
+    }),
+  )
+}
+
+const dispatchRepairTrust = (sock, sdMessage) =>
+  signal.trust(sock, parseChannelPhoneNumber(sdMessage), parseFailedRecipient(sdMessage))
+
+// PARSERS
+
+const parseSdMessage = inboundMsg => {
   try {
     return JSON.parse(inboundMsg)
   } catch (e) {
@@ -77,8 +98,30 @@ const parseMessage = inboundMsg => {
   }
 }
 
+const parseChannelPhoneNumber = sdMessage => sdMessage.data.username
+const parseFailedRecipient = sdMessage => get(sdMessage, 'data.request.recipientNumber')
+
+const parseDistpatchAction = sdMessage => {
+  if (shouldRelay(sdMessage)) return dispatchActions.RELAY
+  if (shouldRepairTrust(sdMessage)) return dispatchActions.REPAIR_TRUST
+  return null
+}
+
 const shouldRelay = sdMessage =>
   sdMessage.type === signal.messageTypes.MESSAGE && get(sdMessage, 'data.dataMessage')
+
+const shouldRepairTrust = sdMessage =>
+  sdMessage.type === signal.messageTypes.ERROR &&
+  get(sdMessage, 'data.request.type') === signal.messageTypes.SEND
+
+// (Database, SignaldMessage) -> [Channel, Sender]
+const parseChannelAndSender = async (db, sdMessage) => {
+  const channelPhoneNumber = parseChannelPhoneNumber(sdMessage)
+  return Promise.all([
+    channelRepository.findDeep(db, channelPhoneNumber),
+    classifySender(db, channelPhoneNumber, sdMessage.data.source),
+  ])
+}
 
 const classifySender = async (db, channelPhoneNumber, sender) => ({
   phoneNumber: sender,
