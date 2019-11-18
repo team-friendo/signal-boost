@@ -193,7 +193,7 @@ const resolvePrefix = (channel, messageType, command, language) => {
     return ''
   }
   if (messageType === BROADCAST_RESPONSE) {
-    // subscriber responses get a special header so they don't look like broadcast messages from admins
+    // subscriber responses get a special header so they don't look like broadcast messages from broadcasters
     // we clone message to preserve attachments
     return `[${prefixes.broadcastResponse}]\n`
   }
