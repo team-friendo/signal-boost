@@ -10,8 +10,8 @@ const support = `
 HOW IT WORKS
 ----------------------------
 
--> Signalboost has admins and subscribers.
--> Admins send announcements that are broadcast to subscribers.
+-> Signalboost channels have broadcasters and subscribers.
+-> Broadcasters send announcements that are broadcast to subscribers.
 -> People can subscribe by sending HELLO or HOLA to this number.
 -> Unsubscribe by sending GOODBYE or ADÍOS to this number.
 -> Send HELP or AYUDA to list commands that make Signalboost do things.
@@ -20,8 +20,8 @@ HOW IT WORKS
 
 const notifications = {
   publisherAdded: (commandIssuer, addedPublisher) =>
-    `New admin ${addedPublisher} added by ${commandIssuer}`,
-  broadcastResponseSent: channel => `Your message was forwarded to the admins of [${channel.name}]`,
+    `New broadcaster ${addedPublisher} added by ${commandIssuer}`,
+  broadcastResponseSent: channel => `Your message was forwarded to the broadcasters of [${channel.name}]`,
   deauthorization: publisherPhoneNumber => `
 ${publisherPhoneNumber} has been removed from this channel because their safety number changed.
 
@@ -35,9 +35,9 @@ ADD ${publisherPhoneNumber}
 
 Until then, they will be unable to send messages to or read messages from this channel.`,
   noop: "Whoops! That's not a command!",
-  unauthorized: "Sorry, Subscriber responses are disabled. The channel only accepts commands at this time. \n Send HELP to see commands I understand!",
+  unauthorized: "Whoops! I don't understand that.\n Send HELP to see commands I understand!",
   welcome: (addingPublisher, channelPhoneNumber) => `
-You were just made an admin of this Signalboost channel by ${addingPublisher}. Welcome!
+You were just made a broadcaster of this Signalboost channel by ${addingPublisher}. Welcome!
 
 People can subscribe to this channel by sending HELLO to ${channelPhoneNumber} and unsubscribe by sending GOODBYE.
 
@@ -52,17 +52,17 @@ const commandResponses = {
   // ADD/REMOVE PUBLISHER
   publisher: {
     add: {
-      success: num => `${num} added as an admin.`,
+      success: num => `${num} added as a broadcaster.`,
       unauthorized,
-      dbError: num => `Whoops! There was an error adding ${num} as an admin. Please try again!`,
+      dbError: num => `Whoops! There was an error adding ${num} as a broadcaster. Please try again!`,
       invalidNumber,
     },
     remove: {
-      success: num => `${num} removed as an admin.`,
+      success: num => `${num} removed as a broadcaster.`,
       unauthorized,
       dbError: num => `Whoops! There was an error trying to remove ${num}. Please try again!`,
       invalidNumber,
-      targetNotPublisher: num => `Whoops! ${num} is not an admin. Can't remove them.`,
+      targetNotPublisher: num => `Whoops! ${num} is not a broadcaster. Can't remove them.`,
     },
   },
   // HELP
@@ -79,16 +79,16 @@ RENAME new name
 -> renames channel to "new name"
 
 ADD +1-555-555-5555
--> makes +1-555-555-5555 an admin
+-> makes +1-555-555-5555 a broadcaster
 
 REMOVE +1-555-555-5555
--> removes +1-555-555-5555 as an admin
+-> removes +1-555-555-5555 as a broadcaster
 
 RESPONSES ON
--> allows subscribers to send messages to admins
+-> allows subscribers to send messages to broadcasters
 
 RESPONSES OFF
--> disables subscribers from sending messages to admins
+-> disables subscribers from sending messages to broadcasters
 
 GOODBYE / ADIOS
 -> leaves this channel`,
@@ -117,7 +117,7 @@ CHANNEL INFO:
 name: ${channel.name}
 phone number: ${channel.phoneNumber}
 subscribers: ${channel.subscriptions.length}
-admins: ${channel.publications.map(a => a.publisherPhoneNumber).join(', ')}
+broadcasters: ${channel.publications.map(a => a.publisherPhoneNumber).join(', ')}
 responses: ${channel.responsesEnabled ? 'ON' : 'OFF'}
 messages sent: ${channel.messageCount.broadcastIn}
 ${support}`,
@@ -130,7 +130,7 @@ name: ${channel.name}
 phone number: ${channel.phoneNumber}
 responses: ${channel.responsesEnabled ? 'ON' : 'OFF'}
 subscribers: ${channel.subscriptions.length}
-admins: ${channel.publications.length}
+broadcasters: ${channel.publications.length}
 ${support}`,
     unauthorized,
   },
@@ -180,7 +180,7 @@ Reply with HELP to learn more or GOODBYE to unsubscribe.`
     invalidNumber,
     unauthorized,
     targetNotMember: phoneNumber =>
-      `Whoops! ${phoneNumber} is not an admin or subscriber on this channel. Cannot reactivate them.`,
+      `Whoops! ${phoneNumber} is not a broadcaster or subscriber on this channel. Cannot reactivate them.`,
     dbError: phoneNumber =>
       `Whoops! There was an error updating the safety number for ${phoneNumber}. Please try again!`,
   },
