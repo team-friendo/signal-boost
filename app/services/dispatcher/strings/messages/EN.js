@@ -55,7 +55,7 @@ ADD ${adminPhoneNumber}
 
 Until then, they will be unable to send messages to or read messages from this channel.`,
   noop: "Whoops! That's not a command!",
-  unauthorized: "Whoops! I don't understand that.\n Send HELP to see commands I understand!",
+  unauthorized: "Whoops! Subscriber responses are disabled. The channel only accepts commands at this time.\n Send HELP to see commands I understand!",
 
   welcome: (addingAdmin, channelPhoneNumber) => `
 You were just made an admin of this Signalboost channel by ${addingAdmin}. Welcome!
