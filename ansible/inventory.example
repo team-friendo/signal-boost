@@ -1,12 +1,18 @@
-nextcloud:
+signalboost:
   hosts:
-    {{ IP ADDRESS OF YOUR REMOTE HOST }}
+    %server_ipaddress%
   vars:
-    ansible_user: {{ YOUR USERNAME }}
-    ansible_ssh_private_key_file: {{ PATH TO YOUR SSH PRIVATE KEY }}
-    ansible_ssh_common_args: '-o IdentitiesOnly=yes'
+    # username and ssh key to log in the server
+    ansible_user: %server_login_name%
+    ansible_ssh_private_key_file: %path/to/ssh_privatekey1%
+
+    # sudo password to grant root access
+    ansible_become_password: %server_login_sudopassword%
+    ansible_ssh_common_args: "-o IdentitiesOnly=yes"
+
+    # admin accounts to create on the server (optional)
     admins:
-      - name: {{ USERNAME OF AN ADMIN }}
-        ssh_key: {{ SSH PUBKEY OF AN ADMIN }}
-      - name: {{ USERNAME OF ANOTHER ADMIN }}
-        ssh_key: {{ SSH PUBKEY OF ANOTHER ADMIN }}
+      - name: %ansible_user account here!%
+        ssh_key: "{{ lookup('file', '%path/to/ssh_pubkey1%') }}"
+      - name: %newadminname%
+        ssh_key: "{{ lookup('file', '%path/to/other_ssh_pubkey%') }}"

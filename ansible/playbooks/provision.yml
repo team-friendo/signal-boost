@@ -4,7 +4,6 @@
   hosts: signalboost
 
   vars:
-    ansible_user: root
     secrets_method: copy
     # docker dependencies (pip packages)
     pip_install_packages:
