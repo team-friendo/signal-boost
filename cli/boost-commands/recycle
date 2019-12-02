@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [[ $1 == "-h" ]];then
+  echo "This command recycles phone numbers to be used with new channels. usage:"
+  echo ""
+  echo "  boost recycle +12223334444,+15556667777"
+  echo ""
+  exit 1
+fi
