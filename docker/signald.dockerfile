@@ -50,8 +50,11 @@ RUN echo "deb http://ftp.us.debian.org/debian sid main" \
     | tee -a /etc/apt/sources.list \
     && apt-get update -qq
 
+# We install sudo as a hack to get around make commands that (needlessly) require it
+RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    openjdk-8-jdk-headless
+        openjdk-8-jdk-headless \
+        sudo
 
 ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64"
 
@@ -61,14 +64,8 @@ ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64"
 
 # build signald from a given commit hash
 ENV REPO_URL "https://git.callpipe.com/finn/signald.git"
-ENV RELEASE_COMMIT_HASH "d709c3face5b027c087c6ed71991b0821d448e28"
+ENV COMMIT_HASH "d709c3face5b027c087c6ed71991b0821d448e28"
 ENV BRANCH "master"
-
-# if we ever want to build off of an unmerged fork...
-# ENV REPO_URL "https://0xacab.org/team-friendo/signald-fork.git"
-
-# hack to avoid halting error on (unnecessary) `sudo` invocations
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo
 
 # fetch repo at desired commit
 RUN git init && \
