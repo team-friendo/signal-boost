@@ -26,6 +26,8 @@
 *retry
 */inventory
 
+# backups
+/backups/*
 
 # text editors
 .idea/*
