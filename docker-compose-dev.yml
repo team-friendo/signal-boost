@@ -13,6 +13,7 @@ services:
     container_name: signalboost_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
     restart: unless-stopped
 
   signald:
@@ -24,7 +25,8 @@ services:
       - ./bin:/signalboost/bin
       - signal_data:/var/lib/signald/data
       - signal_sock:/var/run/signald/
-
+      - ./backups:/backups
+      
   app:
     image: signalboost
     container_name: signalboost_app
