@@ -28,7 +28,7 @@ keystore_volume_backup_path=${backup_dir}/sb_keystore_volume_backup_${timestamp}
 # making keystore volume backup
 
 /bin/tar cf /srv/signalboost/${keystore_volume_backup_path} \
-    /var/lib/docker/volumes/signalboost_signal_data/_data
+    /var/lib/docker/volumes/signalboost_signal_data/_data 2>/dev/null
 
 # encrypting keystore volume backup
 
@@ -44,6 +44,7 @@ keystore_volume_backup_path=${backup_dir}/sb_keystore_volume_backup_${timestamp}
 #####################
 # Notes
 # scp -i ~/.ssh/id_tikva_aguestuser signalboost:/srv/signalboost/${backup_path} /home/aguestuser/-/team-friendo/backups/
-
+# */1 * * * * /bin/bash /srv/signalboost/bin/db/backup-cron >> /srv/signalboost/backups/cron-error.txt 2>&1
+# 1 1 * * * /bin/bash /srv/signalboost/bin/db/backup-cron
 
 popd > /dev/null
