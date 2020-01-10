@@ -12,7 +12,7 @@ keystore_volume_backup_path=${backup_dir}/sb_keystore_volume_backup_${timestamp}
 #####################
 # making psql backup
 
-/usr/local/bin/docker-compose exec db pg_dump -U postgres signalboost -f ${psql_backup_path}
+/usr/local/bin/docker-compose exec -T db pg_dump -U postgres signalboost -f ${psql_backup_path}
 
 # encrypting psql backup
 
