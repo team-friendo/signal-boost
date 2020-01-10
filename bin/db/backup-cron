@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+pushd `pwd` > /dev/null # store current dir
+cd `dirname "$0"` # cd to script path
+cd ../..
+
+backup_dir=backups
+timestamp=`date "+%Y-%m-%d"`
+psql_backup_path=${backup_dir}/sb_psql_backup_${timestamp}.sql
+keystore_volume_backup_path=${backup_dir}/sb_keystore_volume_backup_${timestamp}.tar
+
+#####################
+# making psql backup
+
+/usr/local/bin/docker-compose exec db pg_dump -U postgres signalboost -f ${psql_backup_path}
+
+# encrypting psql backup
+
+/usr/bin/gpg --trust-model always \
+	-r 8DEA5441 -r 97B47404  \
+    -e /srv/signalboost/${psql_backup_path}
+
+# removing unencrypted psql packup 
+
+/bin/rm /srv/signalboost/${psql_backup_path}
+
+#####################
+# making keystore volume backup
+
+/bin/tar cf /srv/signalboost/${keystore_volume_backup_path} \
+    /var/lib/docker/volumes/signalboost_signal_data/_data
+
+# encrypting keystore volume backup
+
+/usr/bin/gpg --trust-model always \
+    -r 97B47404 -r 8DEA5441 \
+    -e --yes /srv/signalboost/${keystore_volume_backup_path}
+
+# removing unencrypted keystore volume backup
+
+/bin/rm /srv/signalboost/${keystore_volume_backup_path}
+
+
+#####################
+# Notes
+# scp -i ~/.ssh/id_tikva_aguestuser signalboost:/srv/signalboost/${backup_path} /home/aguestuser/-/team-friendo/backups/
+
+
+popd > /dev/null
