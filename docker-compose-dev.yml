@@ -51,17 +51,3 @@ services:
       - signal_sock:/var/run/signald/
       - ./yarn.lock:/signalboost/yarn.lock
     restart: unless-stopped
-
-  ngrok:
-    container_name: signalboost_ngrok
-    ports:
-      - 0.0.0.0:4040:4040
-    image: wernight/ngrok
-    links:
-      - app
-    env_file: .env
-    environment:
-      - NGROK_AUTH=$NGROK_AUTH_TOKEN
-      - NGROK_SUBDOMAIN=$NGROK_SUBDOMAIN
-      - NGROK_PORT=app:3000
-    restart: unless-stopped

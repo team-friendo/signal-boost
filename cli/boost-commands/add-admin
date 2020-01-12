@@ -5,7 +5,7 @@ if [[ $1 == "-h" ]] || [[ $1 == "--help" ]];then
   echo ""
   echo "-c: channel phone number (any phone number that user is a member of will work!)";
   echo "-a: admin phone number (required)";
-  echo "-u: url to target (defaults to prod, in dev, use signalboost.ngrok.io)";
+  echo "-u: url to target (defaults to prod, in dev, use http://127.0.0.1:3000)";
   echo ""
   exit 1
 fi
@@ -50,8 +50,10 @@ if [[ ! $admin_phone_number =~ ^\+(1|52)[0-9]{10}$ ]];then
   exit 1
 fi
 
-
-if [ -z $url ];then url=${SIGNALBOOST_HOST_URL}; fi
+if [ -z "$url" ]
+then
+    url="https://$SIGNALBOOST_HOST_URL"
+fi
 
 echo "--- trusting all safety numbers for user ${phone_number} at url ${url}"
 
@@ -59,6 +61,6 @@ curl -s -X POST \
      -H "Content-Type: application/json" \
      -H "Token: $SIGNALBOOST_API_TOKEN" \
      -d "{ \"channelPhoneNumber\": \"$channel_phone_number\", \"adminPhoneNumber\": \"$admin_phone_number\" }" \
-     https://${url}/channels/admins | jq
+     ${url}/channels/admins | jq
 
 popd > /dev/null # return to starting directory

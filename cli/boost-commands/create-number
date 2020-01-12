@@ -5,7 +5,7 @@ if [[ $1 == "-h" ]] || [[ $1 == "--help" ]];then
   echo ""
   echo "-n : number of phone number to provision (default: 1)";
   echo "-a : area code to provision numbers in (default: 929)";
-  echo "-u : url to target (default: prod ip address; in dev, use signalboost.ngrok.io)";
+  echo "-u : url to target (default: signalboost production server; in dev, use http://127.0.0.1:3000)";
   echo ""
   exit 1
 fi
@@ -58,7 +58,10 @@ else
   area_code_kv="\"areaCode\": \"$area_code\""
 fi
 
-if [ -z $url ];then url=${SIGNALBOOST_HOST_URL}; fi
+if [ -z "$url" ]
+then
+    url="https://$SIGNALBOOST_HOST_URL"
+fi
 
 echo "--- provisioning ${num} number(s) with area code ${area_code} at url ${url}"
 
@@ -66,6 +69,6 @@ curl -s -X POST \
      -H "Content-Type: application/json" \
      -H "Token: $SIGNALBOOST_API_TOKEN" \
      -d "{ $area_code_kv, \"num\": $num }" \
-     https://${url}/phoneNumbers | jq
+     ${url}/phoneNumbers | jq
 
 popd > /dev/null # return to starting directory

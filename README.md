@@ -235,7 +235,7 @@ Once you've got the CLI installed, you can use the following to create 2 twillio
 
 ``` shell
 make dev.up
-boost create-number -n 2 -u signalboost.ngrok.io -u signalboost.ngrok.io
+boost create-number -n 2 -u http://127.0.0.1:3000
 ```
 
 Look for the first phone number returned by this call. Let's call it <channel_phone_number>. Let's call the phone number that you use in daily life <your_actual_phone_number>.

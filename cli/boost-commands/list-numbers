@@ -59,13 +59,17 @@ else
   query_string="?filter=$filter"
 fi
 
-if [ -z $url ];then url=${SIGNALBOOST_HOST_URL}; fi
+if [ -z "$url" ]
+then
+    url="https://$SIGNALBOOST_HOST_URL"
+fi
+
 
 echo "--- fetching numbers..."
 
 curl -s \
      -H "Content-Type: application/json" \
      -H "Token: $SIGNALBOOST_API_TOKEN" \
-     https://${url}/phoneNumbers${query_string} | jq ${selector}
+     ${url}/phoneNumbers${query_string} | jq ${selector}
 
 popd > /dev/null # return to starting directory

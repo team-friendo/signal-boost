@@ -6,7 +6,7 @@ if [[ $1 == "-h" ]] || [[ $1 == "--help" ]];then
   echo "-p : phone number of channel to activate";
   echo "-n : name to give to the channel once it is activated";
   echo "-a : comma-delimited list of admin phone numbers";
-  echo "-u : url to target (in dev, use signalboost.ngrok.io)";
+  echo "-u : url to target (in dev, use http://127.0.0.1:3000)";
   echo ""
   exit 1
 fi
@@ -73,7 +73,10 @@ else
 
 fi
 
-if [ -z $url ];then url=${SIGNALBOOST_HOST_URL}; fi
+if [ -z "$url" ]
+then
+    url="https://$SIGNALBOOST_HOST_URL"
+fi
 
 echo "--- provisioning new channel [${name}] on phone number ${phone_number} at url ${url}"
 
@@ -81,6 +84,6 @@ curl -s -X POST \
      -H "Content-Type: application/json" \
      -H "Token: $SIGNALBOOST_API_TOKEN" \
      -d "{ \"phoneNumber\": \"$phone_number\", \"name\": \"$name\", \"admins\":$admins }" \
-     https://${url}/channels | jq
+     ${url}/channels | jq
 
 popd > /dev/null # return to starting directory

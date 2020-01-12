@@ -3,7 +3,7 @@
 if [[ $1 == "-h" ]] || [[ $1 == "--help" ]];then
   echo "This command retrieves active channels. Valid options are:"
   echo ""
-  echo "-u : url to target (in dev, use signalboost.ngrok.io)";
+  echo "-u : url to target (in dev, use http://127.0.0.1:3000)";
   echo ""
   exit 1
 fi
@@ -32,13 +32,16 @@ while getopts ":u:" opt; do
   esac
 done
 
-if [ -z $url ];then url=${SIGNALBOOST_HOST_URL}; fi
+if [ -z "$url" ]
+then
+    url="https://$SIGNALBOOST_HOST_URL"
+fi
 
 echo "--- fetching numbers..."
 
 curl -s \
      -H "Content-Type: application/json" \
      -H "Token: $SIGNALBOOST_API_TOKEN" \
-     https://${url}/channels | jq '.'
+     ${url}/channels | jq '.'
 
 popd > /dev/null # return to starting directory
