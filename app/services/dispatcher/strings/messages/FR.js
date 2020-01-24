@@ -297,6 +297,8 @@ const notifications = {
 
   adminLeft: 'Un administrateur vient de quitter le canal',
 
+  channelDestroyed: 'Le canal a été détruit.',
+
   channelRenamed: (oldName, newName) => `Canal renommée à partir de "${oldName}" to "${newName}."`,
 
   setDescription: newDescription => `Description de le canal définie sur "${newDescription}."`,
@@ -356,6 +358,9 @@ ${
     ? `tentative sera faite pour renvoyer le message en: ${resendInterval.toString().slice(0, -3)}s`
     : `le message a dépassé le seuil de renvoi et ne sera pas renvoyé`
 }`,
+
+  recycleChannelFailed: phoneNumber =>
+    `Échec du recyclage de la chaîne pour le numéro de téléphone: ${phoneNumber}`,
 
   welcome: (addingAdmin, channelPhoneNumber) =>
     `Vous êtes maintenant un

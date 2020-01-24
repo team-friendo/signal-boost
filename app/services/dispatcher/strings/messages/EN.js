@@ -288,6 +288,8 @@ const notifications = {
 
   adminLeft: 'An admin just left the channel.',
 
+  channelDestroyed: 'Channel has been destroyed.',
+
   channelRenamed: (oldName, newName) => `Channel renamed from "${oldName}" to "${newName}."`,
 
   setDescription: newDescription => `Channel description set to "${newDescription}."`,
@@ -332,6 +334,8 @@ ${
     ? `next resend attempt in: ${resendInterval.toString().slice(0, -3)} sec`
     : `message has exceeded resend threshold and will not be resent`
 }`,
+
+  recycleChannelFailed: phoneNumber => `Failed to recycle channel for phone number: ${phoneNumber}`,
 
   signupRequestReceived: (senderNumber, requestMsg) =>
     `Signup request received from ${senderNumber}:\n ${requestMsg}`,
