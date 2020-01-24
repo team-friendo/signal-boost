@@ -95,8 +95,6 @@ describe('phone number services -- recycle module', () => {
 
       describe('when phone numbers do exist in channels db', () => {
         beforeEach(async () => {
-          // findChannelStub.returns(Promise.resolve({ destroy: destroyChannelSpy, phoneNumber: }))
-          getMemberPhoneNumbersStub.returns([])
           updateSucceeds()
           destroyChannelSucceeds()
         })
