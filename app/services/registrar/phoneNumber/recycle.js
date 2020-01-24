@@ -53,7 +53,6 @@ const destroyChannel = async (db, sock, channel) => {
     await channel.destroy()
   } catch (error) {
     await notifyMaintainersOfDestructionFailure(db, sock, channel)
-    // await Promise.reject(new Error('Channel destruction failed'))
   }
 }
 

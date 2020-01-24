@@ -3,7 +3,7 @@
 if [[ $1 == "-h" ]] || [[ $1 == "--help" ]];then
   echo "This command recycles phone numbers to be used with new channels. usage:"
   echo ""
-  echo "  boost recycle +12223334444,+15556667777"
+  echo "  boost recycle -n +12223334444,+15556667777"
   echo ""
   echo "Valid options are:"
   echo "  -u : url to target (in dev, use signalboost.ngrok.io)"
