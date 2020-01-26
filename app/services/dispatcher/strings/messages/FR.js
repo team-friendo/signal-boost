@@ -297,7 +297,8 @@ const notifications = {
 
   adminLeft: 'Un administrateur vient de quitter le canal',
 
-  channelDestroyed: 'Le canal a été détruit.',
+  channelRecycled:
+    "Chaîne désactivée par manque d'utilisation. Pour créer une nouvelle chaîne, visitez https://signalboost.info",
 
   channelRenamed: (oldName, newName) => `Canal renommée à partir de "${oldName}" to "${newName}."`,
 

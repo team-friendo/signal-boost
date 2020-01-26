@@ -40,12 +40,12 @@ const notifyMembers = async (db, sock, channel) => {
   await signal.broadcastMessage(
     sock,
     memberPhoneNumbers,
-    signal.sdMessageOf(channel, channelDestroyedNotification),
+    signal.sdMessageOf(channel, channelRecycledNotification),
   )
 }
 
 // String
-const channelDestroyedNotification = messagesIn(defaultLanguage).notifications.channelDestroyed
+const channelRecycledNotification = messagesIn(defaultLanguage).notifications.channelRecycled
 
 // Channel -> Promise<void>
 const destroyChannel = async (db, sock, channel) => {
