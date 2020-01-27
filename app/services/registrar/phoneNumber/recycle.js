@@ -17,6 +17,7 @@ const recycle = async ({ db, sock, phoneNumbers }) => {
           .then(() => destroyChannel(db, sock, channel))
           .then(() => recordStatusChange(db, phoneNumber, statuses.VERIFIED))
           .then(phoneNumberStatus => ({ status: 'SUCCESS', data: phoneNumberStatus }))
+          .catch(err => ({ status: 'ERROR', message: `Failed to recycle channel. Error: ${err}` }))
       } else {
         return { status: 'ERROR', message: `Channel not found for ${phoneNumber}` }
       }
@@ -53,6 +54,7 @@ const destroyChannel = async (db, sock, channel) => {
     await channel.destroy()
   } catch (error) {
     await notifyMaintainersOfDestructionFailure(db, sock, channel)
+    await Promise.reject('Failed to destroy channel')
   }
 }
 
@@ -73,7 +75,7 @@ const notifyMaintainersOfDestructionFailure = async (db, sock, channel) => {
 }
 
 // (Database, string, PhoneNumberStatus) -> PhoneNumberStatus
-const recordStatusChange = (db, phoneNumber, status) =>
+const recordStatusChange = async (db, phoneNumber, status) =>
   phoneNumberRepository.update(db, phoneNumber, { status }).then(extractStatus)
 
 module.exports = { recycle }
