@@ -9,7 +9,7 @@ const { signal: signalConfig } = require('../../../config')
 // ({Database, Socket, string}) -> SignalboostStatus
 const recycle = async ({ db, sock, phoneNumbers }) => {
   return await Promise.all(
-    validatePhoneNumbers(phoneNumbers).map(async phoneNumber => {
+    phoneNumbers.split(',').map(async phoneNumber => {
       const channel = await channelRepository.findDeep(db, phoneNumber)
 
       if (channel) {
@@ -17,7 +17,7 @@ const recycle = async ({ db, sock, phoneNumbers }) => {
           .then(() => destroyChannel(db, sock, channel))
           .then(() => recordStatusChange(db, phoneNumber, statuses.VERIFIED))
           .then(phoneNumberStatus => ({ status: 'SUCCESS', data: phoneNumberStatus }))
-          .catch(err => ({ status: 'ERROR', message: `Failed to recycle channel. Error: ${err}` }))
+          .catch(err => handleRecycleFailure(err, phoneNumber))
       } else {
         return { status: 'ERROR', message: `Channel not found for ${phoneNumber}` }
       }
@@ -28,13 +28,6 @@ const recycle = async ({ db, sock, phoneNumbers }) => {
 /********************
  * HELPER FUNCTIONS
  ********************/
-// RegExp
-const phoneNumRegex = new RegExp('^\\+[0-9]?()[0-9](\\d[0-9]{9})$')
-
-// String -> [String]
-const validatePhoneNumbers = phoneNumbers =>
-  phoneNumbers.split(',').filter(phoneNumber => phoneNumRegex.test(phoneNumber))
-
 // (Database, Socket, Channel) -> Channel
 const notifyMembers = async (db, sock, channel) => {
   const memberPhoneNumbers = channelRepository.getMemberPhoneNumbers(channel)
@@ -77,5 +70,10 @@ const notifyMaintainersOfDestructionFailure = async (db, sock, channel) => {
 // (Database, string, PhoneNumberStatus) -> PhoneNumberStatus
 const recordStatusChange = async (db, phoneNumber, status) =>
   phoneNumberRepository.update(db, phoneNumber, { status }).then(extractStatus)
+
+const handleRecycleFailure = (err, phoneNumber) => ({
+  status: 'ERROR',
+  message: `Failed to recycle channel for ${phoneNumber}. Error: ${err}`,
+})
 
 module.exports = { recycle }

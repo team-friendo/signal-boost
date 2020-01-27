@@ -7,8 +7,7 @@ import channelRepository from '../../../../../app/db/repositories/channel'
 import signal from '../../../../../app/services/signal'
 
 describe('phone number services -- recycle module', () => {
-  const validPhoneNumbers = '+11111111111,+12222222222'
-  const invalidPhoneNumbers = '9999999,+123456'
+  const phoneNumbers = '+11111111111,+12222222222'
   let db = {}
   const sock = {}
   let updatePhoneNumberStub,
@@ -64,57 +63,75 @@ describe('phone number services -- recycle module', () => {
       }),
     )
 
+  const broadcastMessageSucceeds = () =>
+    broadcastMessageStub.callsFake(async (sock, phoneNumbers, msg) => await Promise.resolve())
+
+  const broadcastMessageFails = () =>
+    broadcastMessageStub.callsFake(
+      async (sock, phoneNumbers, msg) => await Promise.reject('Failed to broadcast message'),
+    )
+
   describe('recycling phone numbers', () => {
-    describe('when phone numbers are in an invalid format', () => {
+    describe('when phone numbers do not exist in channels db', () => {
+      beforeEach(async () => {
+        findChannelStub.returns(Promise.resolve(null))
+      })
+
       it('returns a channel not found status', async () => {
         const response = await phoneNumberService.recycle({
           db,
           sock,
-          phoneNumbers: invalidPhoneNumbers,
+          phoneNumbers: phoneNumbers,
         })
-        expect(response).to.eql([])
+
+        expect(response).to.eql([
+          {
+            message: 'Channel not found for +11111111111',
+            status: 'ERROR',
+          },
+          {
+            message: 'Channel not found for +12222222222',
+            status: 'ERROR',
+          },
+        ])
       })
     })
 
-    describe('when phone numbers are in a valid format', () => {
-      describe('when phone numbers do not exist in channels db', () => {
+    describe('when phone numbers do exist in channels db', () => {
+      beforeEach(async () => {
+        findChannelStub.returns(Promise.resolve({}))
+      })
+
+      describe('when notifying members of channel recycling fails', () => {
         beforeEach(async () => {
-          findChannelStub.returns(Promise.resolve(null))
+          await broadcastMessageFails()
         })
 
-        it('returns a channel not found status', async () => {
+        it('returns a failed status', async () => {
           const response = await phoneNumberService.recycle({
             db,
             sock,
-            phoneNumbers: validPhoneNumbers,
+            phoneNumbers: phoneNumbers,
           })
 
           expect(response).to.eql([
             {
-              message: 'Channel not found for +11111111111',
+              message:
+                'Failed to recycle channel for +11111111111. Error: Failed to broadcast message',
               status: 'ERROR',
             },
             {
-              message: 'Channel not found for +12222222222',
+              message:
+                'Failed to recycle channel for +12222222222. Error: Failed to broadcast message',
               status: 'ERROR',
             },
           ])
         })
       })
 
-      describe('when phone numbers do exist in channels db', () => {
+      describe('when notifying members of channel recycling succeeds', () => {
         beforeEach(async () => {
-          findChannelStub.returns(Promise.resolve({}))
-        })
-
-        it('notifies the members of the channel of destruction', async () => {
-          await phoneNumberService.recycle({
-            db,
-            sock,
-            phoneNumbers: validPhoneNumbers,
-          })
-
-          expect(broadcastMessageStub.called).to.eql(true)
+          await broadcastMessageSucceeds()
         })
 
         describe('when the channel destruction succeeds', () => {
@@ -127,11 +144,21 @@ describe('phone number services -- recycle module', () => {
               updatePhoneNumberSucceeds()
             })
 
+            it('notifies the members of the channel of destruction', async () => {
+              await phoneNumberService.recycle({
+                db,
+                sock,
+                phoneNumbers: phoneNumbers,
+              })
+
+              expect(broadcastMessageStub.callCount).to.eql(2)
+            })
+
             it('updates the phone number record to verified', async () => {
               await phoneNumberService.recycle({
                 db,
                 sock,
-                phoneNumbers: validPhoneNumbers,
+                phoneNumbers: phoneNumbers,
               })
 
               expect(updatePhoneNumberStub.getCall(0).args).to.eql([
@@ -147,7 +174,7 @@ describe('phone number services -- recycle module', () => {
               await phoneNumberService.recycle({
                 db,
                 sock,
-                phoneNumbers: validPhoneNumbers,
+                phoneNumbers: phoneNumbers,
               })
 
               expect(destroyChannelSpy.callCount).to.eql(2)
@@ -157,7 +184,7 @@ describe('phone number services -- recycle module', () => {
               const response = await phoneNumberService.recycle({
                 db,
                 sock,
-                phoneNumbers: validPhoneNumbers,
+                phoneNumbers: phoneNumbers,
               })
 
               expect(response).to.eql([
@@ -188,71 +215,75 @@ describe('phone number services -- recycle module', () => {
               const response = await phoneNumberService.recycle({
                 db,
                 sock,
-                phoneNumbers: validPhoneNumbers,
+                phoneNumbers: phoneNumbers,
               })
 
               expect(response).to.eql([
                 {
-                  message: 'Failed to recycle channel. Error: DB phoneNumber update failure',
+                  message:
+                    'Failed to recycle channel for +11111111111. Error: DB phoneNumber update failure',
                   status: 'ERROR',
                 },
                 {
-                  message: 'Failed to recycle channel. Error: DB phoneNumber update failure',
+                  message:
+                    'Failed to recycle channel for +12222222222. Error: DB phoneNumber update failure',
                   status: 'ERROR',
                 },
               ])
             })
           })
         })
+      })
 
-        describe('when the channel destruction fails', () => {
-          beforeEach(() => {
-            destroyChannelFails()
-            getAdminPhoneNumbersStub.returns(['+16154804259', '+12345678910'])
+      describe('when the channel destruction fails', () => {
+        beforeEach(() => {
+          destroyChannelFails()
+          getAdminPhoneNumbersStub.returns(['+16154804259', '+12345678910'])
+        })
+
+        it('notifies the correct instance maintainers', async () => {
+          await phoneNumberService.recycle({
+            db,
+            sock,
+            phoneNumbers: phoneNumbers,
           })
 
-          it('notifies the correct instance maintainers', async () => {
-            await phoneNumberService.recycle({
-              db,
-              sock,
-              phoneNumbers: validPhoneNumbers,
-            })
+          expect(broadcastMessageStub.getCall(2).args[1]).to.eql(['+16154804259', '+12345678910'])
+        })
 
-            expect(broadcastMessageStub.getCall(2).args[1]).to.eql(['+16154804259', '+12345678910'])
+        it('notifies the instance maintainers with a channel failure message', async () => {
+          await phoneNumberService.recycle({
+            db,
+            sock,
+            phoneNumbers: phoneNumbers,
           })
 
-          it('notifies the instance maintainers with a channel failure message', async () => {
-            await phoneNumberService.recycle({
-              db,
-              sock,
-              phoneNumbers: validPhoneNumbers,
-            })
+          expect(broadcastMessageStub.getCall(2).args[2]).to.eql({
+            messageBody: 'Failed to recycle channel for phone number: +11111111111',
+            type: 'send',
+            username: '+15555555555',
+          })
+        })
 
-            expect(broadcastMessageStub.getCall(2).args[2]).to.eql({
-              messageBody: 'Failed to recycle channel for phone number: +11111111111',
-              type: 'send',
-              username: '+15555555555',
-            })
+        it('returns a failed status', async () => {
+          const response = await phoneNumberService.recycle({
+            db,
+            sock,
+            phoneNumbers: phoneNumbers,
           })
 
-          it('returns a failed status', async () => {
-            const response = await phoneNumberService.recycle({
-              db,
-              sock,
-              phoneNumbers: validPhoneNumbers,
-            })
-
-            expect(response).to.eql([
-              {
-                message: 'Failed to recycle channel. Error: Failed to destroy channel',
-                status: 'ERROR',
-              },
-              {
-                message: 'Failed to recycle channel. Error: Failed to destroy channel',
-                status: 'ERROR',
-              },
-            ])
-          })
+          expect(response).to.eql([
+            {
+              message:
+                'Failed to recycle channel for +11111111111. Error: Failed to destroy channel',
+              status: 'ERROR',
+            },
+            {
+              message:
+                'Failed to recycle channel for +12222222222. Error: Failed to destroy channel',
+              status: 'ERROR',
+            },
+          ])
         })
       })
     })
