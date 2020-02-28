@@ -11,7 +11,7 @@ const systemName = 'le maintenant du système Signalboost'
 const notAdmin =
   'Désolé, seuls les admins sont autorisés à exécuter cette commande. Envoyez AIDE pour une liste de commandes valides.'
 const notSubscriber =
-  "Votre commande n'a pas pu être traitée car vous n'êtes pas abonné à ce canal. Envoyez BONJOUR pour vous abonner."
+  "Votre commande n'a pas pu être traitée car vous n'êtes pas abonné.e à ce canal. Envoyez BONJOUR pour vous abonner."
 
 const onOrOff = isOn => (isOn ? 'activée' : 'désactivée')
 
@@ -19,19 +19,19 @@ const support = `----------------------------------------------
 COMMENT ÇA FONCTIONNE
 ----------------------------------------------
 
-Signalboost dispose de canaux avec des administrateurs et des abonnés:
+Signalboost dispose de canaux avec des administrateurices et des abonnés:
 
--> Lorsque les adminis transmettent des messages, ces messages sont envoyés à toutes les abonnées.
--> Si activé, les abonnés peuvent envoyer des messages anonymes à la hotline.
+-> Lorsque les admins transmettent des messages, ces messages sont envoyés à l'ensemble des abonnées.
+-> Si activé, les abonnées peuvent envoyer des messages anonymes à la hotline.
 
 Signalboost protège votre vie privée:
 
--> Les usagers ne peuvent pas voir les numéros de téléphone des autres usagers. (Les flics ne peuvent pas non plus!)
--> Signalboost ne lit pas et ne conserve aucun de vos messages.
+-> Les utilisateurices ne peuvent pas voir les numéros de téléphone des autres membres. (Les flics non plus!)
+-> Signalboost ne lit et ne conserve aucun de vos messages.
 
 Signalboost répond aux commandes:
 
--> AIDE affiche le menu des commandes.
+-> AIDE retourne la liste des commandes.
 
 Pour plus de renseignements: https://signalboost.info`
 
@@ -48,9 +48,9 @@ const commandResponses = {
   // ACCEPT
 
   accept: {
-    success: channel => `Bonjour! Vous êtes maintenant abonnée au/à le [${
+    success: channel => `Bonjour! Vous êtes maintenant abonnée au canal Signalboost [${
       channel.name
-    }] canal Signalboost. ${channel.description}
+    }] . ${channel.description}
 
 Répondez avec AIDE pour en savoir plus ou ADIEU pour vous désinscrire.`,
     alreadyMember: 'Désolé, vous êtes déjà membre de ce canal',
@@ -92,7 +92,7 @@ COMMANDES
 ----------------------------------------------
 
 AIDE
--> menu des commandes
+-> liste des commandes
 
 INFO
 -> affiche les stats, explique le fonctionnement de Signalboost
@@ -100,13 +100,13 @@ INFO
 ----------------------------------------------
 
 RENOMMER nouveau nom
--> renomme le canal à “nouveau nom”
+-> renomme le canal en “nouveau nom”
 
 DESCRIPTION description de le canal
 -> ajoute ou met à jour la description publique du canal
 
 AJOUTER / SUPPRIMER +1-555-555-5555
--> ajoute ou supprime + 1-555-555-5555 en tant qu'administrateur du canal
+-> ajoute ou supprime + 1-555-555-5555 en tant qu'administrateurice du canal
 
 HOTLINE ACTIVÉE / DÉSACTIVÉE
 -> active ou désactive hotline
@@ -118,7 +118,7 @@ NIVEAU DE PORTER GARANT niveau
 -> modifie le nombre d'invitations nécessaires pour rejoindre la chaîne
 
 ESPAÑOL / ENGLISH / DEUTSCH
--> change la langue à l'espagnol, l'anglais ou l'allemand
+-> change la langue en espagnol, anglais ou allemand
 
 ADIEU
 -> désabonnement du canal
@@ -131,7 +131,7 @@ COMMANDES
 ----------------------------------------------
 
 AIDE
--> menu des commandes
+-> liste des commandes
 
 INFO
 -> affiche les stats, explique le fonctionnement de Signalboost
@@ -142,13 +142,13 @@ INVITER
 -> invite + 1-555-555-5555 à s'abonner au canal
 
 ESPAÑOL / ENGLISH / DEUTSCH
--> change la langue à l'espagnol, l'anglais ou l'allemand
+-> change la langue en espagnol, anglais ou allemand
 
 ALLÔ
--> abonnement aux avis
+-> abonnement au canal
 
 ADIEU
--> désabonnement des avis`,
+-> désabonnement du canal`,
   },
 
   // INFO
@@ -175,7 +175,7 @@ ${support}`,
 INFOS CANAL
 ---------------------------
 
-Vous êtes abonné à ce canal.
+Vous êtes abonné.e à ce canal.
 
 nom: ${channel.name}
 numéro de téléphone: ${channel.phoneNumber}
@@ -191,7 +191,7 @@ ${support}`,
 INFOS CANAL
 ---------------------------
 
-Vous n'êtes pas abonné à ce canal. Envoyez AJOUTER pour vous abonner.
+Vous n'êtes pas abonné.e à ce canal. Envoyez AJOUTER pour vous abonner.
 
 nom: ${channel.name}
 numéro de téléphone: ${channel.phoneNumber}
@@ -238,7 +238,7 @@ Si vous avez déjà une invitation, essayez d'envoyer ACCEPTER`,
   // REMOVE
 
   remove: {
-    success: num => `${num} supprimé en tant qu'admin.`,
+    success: num => `${num} supprimé.e en tant qu'admin.`,
     notAdmin,
     dbError: num =>
       `Oups! Une erreur s'est produite lors de la tentative de suppression ${num}. Veuillez essayer de nouveau.`,
@@ -253,7 +253,7 @@ Si vous avez déjà une invitation, essayez d'envoyer ACCEPTER`,
 Canal nom changé de "${oldName}" à "${newName}”.`,
     dbError: (oldName, newName) =>
       `[${oldName}]
-Oups! Une erreur s’est produite en tentant de renommer le canal de [${oldName}] à [${newName}]. Veuillez essayer de nouveau!`,
+Oups! Une erreur s’est produite en tentant de renommer le canal de [${oldName}] en [${newName}]. Veuillez essayer de nouveau!`,
     notAdmin,
   },
 
@@ -262,7 +262,7 @@ Oups! Une erreur s’est produite en tentant de renommer le canal de [${oldName}
   setLanguage: {
     success: `Je vous parlerai maintenant en français!
     
-Commande AIDE pour le menu des commandes que je maîtrise.`,
+Commande AIDE pour la liste des commandes valides.`,
     dbError: 'Oups! Votre langage de préférence n’a pas été conservé. Veuillez essayer de nouveau!',
   },
 
@@ -337,11 +337,11 @@ Pour modifier le niveau de porter garant, utilisez la commande NIVEAU DE PORTER 
 
 const notifications = {
   adminAdded: (commandIssuer, addedAdmin) =>
-    `Nouvelle-eau Admin ${addedAdmin} ajouté par ${commandIssuer}`,
+    `Nouvelle-eau Admin ${addedAdmin} ajouté.e par ${commandIssuer}`,
 
-  adminRemoved: "Un administrateur vient d'être supprimé.",
+  adminRemoved: "Un.e administrateurice vient d'être supprimé.e.",
 
-  adminLeft: 'Un administrateur vient de quitter le canal',
+  adminLeft: 'Un.e administrateurice vient de quitter le canal',
 
   channelDestroyed:
     'La chaîne et tous les enregistrements associés ont été définitivement détruits.',
@@ -364,45 +364,45 @@ const notifications = {
 
 Envoyez HELP pour répertorier les commandes valides. Envoyez ALLÔ pour vous abonner.
 
-(Remarque: tous les messages sont transmis de manière anonyme. Indiquez votre numéro de téléphone si vous souhaitez que les administrateurs vous répondent individuellement.)`,
+(Remarque: tous les messages sont transmis de manière anonyme. Indiquez votre numéro de téléphone si vous souhaitez que les administrateurices vous répondent individuellement.)`,
 
   hotlineMessagesDisabled: isSubscriber =>
     isSubscriber
       ? 'Désolé, la hotline ne sont pas activés sur ce canal. Envoyez AIDE pour répertorier les commandes valides.'
-      : 'Désolé, la hotline ne sont pas activés sur ce canal. Envoyez AIDE pour lister les commandes valides ou ALLÔ pour vous abonner.',
+      : 'Désolé, la hotline ne sont pas activés sur ce canal. Envoyez AIDE pour  recevoir une liste des commandes valides ou ALLÔ pour vous abonner.',
 
   inviteReceived: (channelName, invitesReceived, invitesNeeded) =>
     `Bonjour! Vous avez reçu les invitations ${invitesReceived}/${invitesNeeded} nécessaires pour rejoindre la chaîne Signalboost de ${channelName}.
        ${invitesReceived === invitesNeeded ? `Veuillez répondre avec ACCEPTER ou REFUSER.` : ''}
      `,
 
-  inviteAccepted: `Félicitations! Quelqu'un a accepté votre invitation et est maintenant abonné à cette chaîne.`,
+  inviteAccepted: `Félicitations! Quelqu'un a accepté votre invitation et est maintenant abonné.e à cette chaîne.`,
 
   deauthorization: adminPhoneNumber => `
 ${adminPhoneNumber} a été retiré de ce canal parce que leur numéro de sécurité a été modifié.
 
 Ceci est presque certainement parce qu’ielles ont réinstallé Signal sur un nouvel appareil.
 
-Cependant, il y a un petit risque que leur téléphone soit compromis et tente de se faire passer pour elleux.
+Cependant, il y a un petit risque que leur téléphone soit compromis et qu'une autre personne tente de se faire passer pour elleux.
 
-Vérifiez auprès de ${adminPhoneNumber} pour vous assurer qu’ielles contrôlent toujours leur appareil, et vous pouvez par la suite les revalider avec:
+Vérifiez auprès de ${adminPhoneNumber} pour vous assurer que l'appareil est toujours sous leur controle, vous pouvez par la suite les revalider avec:
 
 AJOUTER ${adminPhoneNumber}
 
 Ielles seront incapables d’envoyer ou de lire des messages sur ce canal avant que cette étape soit complétée.`,
   noop: 'Oups! Ceci n’est pas une commande!',
   unauthorized:
-    'Oups! La hotline est désactivée. Pour le moment, ce canal acceptera uniquement des commandes. Commande AIDE pour voir le menu de commandes que je maîtrise!',
+    'Oups! La hotline est désactivée. Pour le moment, ce canal acceptera uniquement des commandes. Commande AIDE pour voir la liste de commandes valides!',
 
   signupRequestReceived: (senderNumber, requestMsg) =>
-    `Demande d’abonnement reçu provenant de ${senderNumber}:
+    `Demande d’abonnement reçu de ${senderNumber}:
 ${requestMsg}`,
 
   signupRequestResponse:
-    'Merci pour votre abonnement avec Signalboost! Vous recevrez bientôt un message d’accueil sur votre nouveau canal...',
+    'Merci pour votre inscription avec Signalboost! Vous recevrez bientôt un message d’accueil sur votre nouveau canal...',
 
   toRemovedAdmin:
-    "Vous venez d'être supprimé en tant qu'administrateur de cette chaîne. Envoyez BONJOUR pour vous réinscrire.",
+    "Vous venez d'être supprimé.e en tant qu'administrateurice de cette chaîne. Envoyez BONJOUR pour vous réinscrire.",
 
   toggles: commandResponses.toggles,
 
@@ -418,12 +418,12 @@ ${
     `Échec du recyclage de la chaîne pour le numéro de téléphone: ${phoneNumber}`,
 
   vouchLevelChanged: vouchLevel =>
-    `Un administrateur vient de changer le niveau du garant en ${vouchLevel}; ${vouchLevel} ${
+    `Un.e administrateurice vient de changer le niveau du garant en ${vouchLevel}; ${vouchLevel} ${
       vouchLevel > 1 ? 'invitations' : 'invitation'
     } seront désormais nécessaires pour rejoindre cette chaîne.`,
 
   welcome: (addingAdmin, channelPhoneNumber) =>
-    `Vous êtes maintenant un
+    `Vous êtes maintenant un.e
  admin de ce canal Signalboost grâce à ${addingAdmin}. Bienvenue!
 
 On peut aussi s’abonner à ce canal avec la commande ALLÔ au ${channelPhoneNumber}, et se désabonner avec la commande ADIEU.
