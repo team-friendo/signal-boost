@@ -100,13 +100,13 @@ INFO
 ----------------------------------------------
 
 RENOMMER nouveau nom
--> renomme le canal au “nouveau nom”
+-> renomme le canal a “nouveau nom”
 
 DESCRIPTION description de le canal
--> ajoute ou met à jour la description publique de le canal
+-> ajoute ou met à jour la description publique du canal
 
 AJOUTER / SUPPRIMER +1-555-555-5555
--> ajoute ou supprime + 1-555-555-5555 en tant qu'administrateur de le canal
+-> ajoute ou supprime + 1-555-555-5555 en tant qu'administrateur du canal
 
 HOTLINE ACTIVÉE / DÉSACTIVÉE
 -> active ou désactive hotline
@@ -121,7 +121,7 @@ ESPAÑOL / ENGLISH / DEUTSCH
 -> change la langue au Español, Anglais ou Allemand
 
 ADIEU
--> désabonnement de le canal
+-> désabonnement du canal
 
 DÉTRUIRE
 -> détruit définitivement ce canal et tous les enregistrements associés`,
@@ -191,7 +191,7 @@ ${support}`,
 INFOS CANAL
 ---------------------------
 
-Vous n'êtes pas abonné à cette canal. Envoyez AIDE pour vous abonner.
+Vous n'êtes pas abonné à ce canal. Envoyez AJOUTER pour vous abonner.
 
 nom: ${channel.name}
 numéro de téléphone: ${channel.phoneNumber}
@@ -354,7 +354,7 @@ const notifications = {
 
   channelRenamed: (oldName, newName) => `Canal renommée à partir de "${oldName}" to "${newName}."`,
 
-  setDescription: newDescription => `Description de le canal définie sur "${newDescription}."`,
+  setDescription: newDescription => `Description du canal définie sur "${newDescription}."`,
 
   expiryUpdateNotAuthorized:
     "Désolé, seuls les admins peuvent régler l'horloge des messages disparus.",
