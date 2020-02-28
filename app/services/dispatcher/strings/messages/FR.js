@@ -11,7 +11,7 @@ const systemName = 'le maintenant du système Signalboost'
 const notAdmin =
   'Désolé, seuls les admins sont autorisés à exécuter cette commande. Envoyez AIDE pour une liste de commandes valides.'
 const notSubscriber =
-  "Votre commande n'a pas pu être traitée car vous n'êtes pas abonné à cette canal. Envoyez BONJOUR pour vous abonner."
+  "Votre commande n'a pas pu être traitée car vous n'êtes pas abonné à ce canal. Envoyez BONJOUR pour vous abonner."
 
 const onOrOff = isOn => (isOn ? 'activée' : 'désactivée')
 
@@ -53,7 +53,7 @@ const commandResponses = {
     }] canal Signalboost. ${channel.description}
 
 Répondez avec AIDE pour en savoir plus ou ADIEU pour vous désinscrire.`,
-    alreadyMember: 'Désolé, vous êtes déjà membre de cette canal',
+    alreadyMember: 'Désolé, vous êtes déjà membre de ce canal',
     belowVouchLevel: (channel, required, actual) =>
       `Désolé, ${
         channel.name
@@ -100,7 +100,7 @@ INFO
 ----------------------------------------------
 
 RENOMMER nouveau nom
--> renomme le canal a “nouveau nom”
+-> renomme le canal à “nouveau nom”
 
 DESCRIPTION description de le canal
 -> ajoute ou met à jour la description publique du canal
@@ -118,7 +118,7 @@ NIVEAU DE PORTER GARANT niveau
 -> modifie le nombre d'invitations nécessaires pour rejoindre la chaîne
 
 ESPAÑOL / ENGLISH / DEUTSCH
--> change la langue au Español, Anglais ou Allemand
+-> change la langue à l'espagnol, l'anglais ou l'allemand
 
 ADIEU
 -> désabonnement du canal
@@ -139,10 +139,10 @@ INFO
 ----------------------------------------------
 
 INVITER
--> invite + 1-555-555-5555 à s'abonner à le canal
+-> invite + 1-555-555-5555 à s'abonner au canal
 
 ESPAÑOL / ENGLISH / DEUTSCH
--> change la langue au Español, Anglais ou Allemand
+-> change la langue à l'espagnol, l'anglais ou l'allemand
 
 ALLÔ
 -> abonnement aux avis
@@ -158,7 +158,7 @@ ADIEU
 INFOS CANAL
 ---------------------------
 
-Vous êtes admin de cette canal.
+Vous êtes admin de ce canal.
 
 nom: ${channel.name}
 numéro de téléphone: ${channel.phoneNumber}
@@ -175,7 +175,7 @@ ${support}`,
 INFOS CANAL
 ---------------------------
 
-Vous êtes abonné a cette canal.
+Vous êtes abonné à ce canal.
 
 nom: ${channel.name}
 numéro de téléphone: ${channel.phoneNumber}
@@ -220,10 +220,10 @@ ${support}`,
       }
 
 Répondez avec AIDE pour en savoir plus ou ADIEU pour vous désinscrire.`,
-    inviteRequired: `Pardon! Les invitations sont nécessaires pour s'abonner à cette canal. Demandez à un ami de vous inviter!
+    inviteRequired: `Pardon! Les invitations sont nécessaires pour s'abonner à ce canal. Demandez à un ami de vous inviter!
 
 Si vous avez déjà une invitation, essayez d'envoyer ACCEPTER`,
-    dbError: `Oups! Une erreur s’est produite en tentant de vous ajouter à le canal. Veuillez essayer de nouveau!`,
+    dbError: `Oups! Une erreur s’est produite en tentant de vous ajouter au canal. Veuillez essayer de nouveau!`,
     alreadyMember: `Oups! Vous êtes déjà abonnée à ce canal.`,
   },
 
@@ -329,8 +329,8 @@ Pour modifier le niveau de porter garant, utilisez la commande NIVEAU DE PORTER 
 
   description: {
     success: newDescription =>
-      `La description de le canal a été remplacée par "${newDescription}".`,
-    dbError: `Oups! Une erreur s'est produite lors du changement de la description de le canal. ¡Inténtalo de nuevo!`,
+      `La description du canal a été remplacée par "${newDescription}".`,
+    dbError: `Oups! Une erreur s'est produite lors du changement de la description du canal. Veuillez essayer à nouveau!`,
     notAdmin,
   },
 }
@@ -352,7 +352,7 @@ const notifications = {
   channelRecycled:
     "Chaîne désactivée par manque d'utilisation. Pour créer une nouvelle chaîne, visitez https://signalboost.info",
 
-  channelRenamed: (oldName, newName) => `Canal renommée à partir de "${oldName}" to "${newName}."`,
+  channelRenamed: (oldName, newName) => `Canal renommée de "${oldName}" à "${newName}."`,
 
   setDescription: newDescription => `Description du canal définie sur "${newDescription}."`,
 
@@ -368,8 +368,8 @@ Envoyez HELP pour répertorier les commandes valides. Envoyez ALLÔ pour vous ab
 
   hotlineMessagesDisabled: isSubscriber =>
     isSubscriber
-      ? 'Désolé, la hotline ne sont pas activés sur cette canal. Envoyez AIDE pour répertorier les commandes valides.'
-      : 'Désolé, la hotline ne sont pas activés sur cette canal. Envoyez AIDE pour lister les commandes valides ou ALLÔ pour vous abonner.',
+      ? 'Désolé, la hotline ne sont pas activés sur ce canal. Envoyez AIDE pour répertorier les commandes valides.'
+      : 'Désolé, la hotline ne sont pas activés sur ce canal. Envoyez AIDE pour lister les commandes valides ou ALLÔ pour vous abonner.',
 
   inviteReceived: (channelName, invitesReceived, invitesNeeded) =>
     `Bonjour! Vous avez reçu les invitations ${invitesReceived}/${invitesNeeded} nécessaires pour rejoindre la chaîne Signalboost de ${channelName}.
