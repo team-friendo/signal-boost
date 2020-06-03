@@ -263,6 +263,13 @@ If you already have an invite, try sending ACCEPT`,
     notSubscriber,
   },
 
+  // PRIVATE
+
+  private: {
+    notAdmin,
+    signalError: `Whoops! There was an error trying to private message the admins of this channel. Please try again!`,
+  },
+
   // REMOVE
 
   remove: {
@@ -470,6 +477,8 @@ const prefixes = {
     memberType === memberTypes.ADMIN
       ? `REPLY TO HOTLINE #${messageId}`
       : `PRIVATE REPLY FROM ADMINS`,
+  broadcastMessage: `BROADCAST`,
+  privateMessage: `PRIVATE`
 }
 
 module.exports = {

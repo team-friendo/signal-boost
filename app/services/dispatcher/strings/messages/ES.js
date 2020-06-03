@@ -248,6 +248,13 @@ Intenta emitir nuevamente INVITAR para los siguientes números:
 ${failedPhoneNumbers.join(',')}`,
   },
 
+  // PRIVATE
+
+  private: {
+    notAdmin,
+    signalError: `¡Ay! Se produjo un error al intentar enviar un mensaje privado a los administradores de este canal. ¡Inténtelo de nuevo!`
+  },
+
   // REMOVE
 
   remove: {
@@ -495,6 +502,8 @@ const prefixes = {
     memberType === memberTypes.ADMIN
       ? `RESPONDER A LA LÍNEA DIRECTA #${messageId}`
       : `RESPUESTA PRIVADA DE ADMINS`,
+  broadcastMessage: `TRANSMITIR`,
+  privateMessage: `PRIVADO`,
 }
 
 module.exports = {

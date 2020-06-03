@@ -1310,6 +1310,47 @@ describe('executing commands', () => {
     })
   })
 
+  describe('PRIVATE command', () => {
+    const sdMessage = sdMessageOf(channel, 'PRIVATE hello this is private!')
+
+    describe('when sender is not an admin', () => {
+      const dispatchable = { db, channel, sender: subscriber, sdMessage }
+
+      it('returns an error message to sender', async () => {
+        expect(await processCommand(dispatchable)).to.eql({
+          command: commands.PRIVATE,
+          payload: 'hello this is private!',
+          status: statuses.UNAUTHORIZED,
+          message: CR.private.notAdmin,
+          notifications: [],
+        })
+      })
+    })
+
+    describe('when sender is an admin', () => {
+      const dispatchable = { db, channel, sender: admin, sdMessage }
+
+      it('returns the private messages to admins only', async () => {
+        expect(await processCommand(dispatchable)).to.eql({
+          command: commands.PRIVATE,
+          message: '[PRIVATE]\nhello this is private!',
+          payload: 'hello this is private!',
+          status: statuses.SUCCESS,
+          notifications: [
+            {
+              message: "[PRIVATE]\nhello this is private!",
+              recipient: bystanderAdminMemberships[0].memberPhoneNumber
+            },
+            {
+              message: "[PRIVATE]\nhello this is private!",
+              recipient: bystanderAdminMemberships[1].memberPhoneNumber
+            }
+          ]
+        })
+      })
+    })
+  })
+
   describe('REMOVE command', () => {
     const removalTargetNumber = channel.memberships[1].memberPhoneNumber
     let validateStub, isAdminStub, removeMemberStub, resolveMemberTypeStub

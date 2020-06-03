@@ -9,7 +9,7 @@ const phoneNumberService = require('../../../../app/services/registrar/phoneNumb
 const signal = require('../../signal')
 const logger = require('../logger')
 const { get, isEmpty, uniq } = require('lodash')
-const { getAllAdminsExcept } = require('../../../db/repositories/channel')
+const { getAllAdminsExcept, getAdminPhoneNumbers } = require('../../../db/repositories/channel')
 const { messagesIn } = require('../strings/messages')
 const { memberTypes } = require('../../../db/repositories/membership')
 const { ADMIN, NONE } = memberTypes
@@ -68,6 +68,7 @@ const execute = async (executable, dispatchable) => {
     [commands.INVITE]: () => maybeInvite(db, channel, sender, payload, language),
     [commands.JOIN]: () => maybeAddSubscriber(db, channel, sender, language),
     [commands.LEAVE]: () => maybeRemoveSender(db, channel, sender),
+    [commands.PRIVATE]: () => privateMessageAdmins(db, sock, channel, sender, payload),
     [commands.RENAME]: () => maybeRenameChannel(db, channel, sender, payload),
     [commands.REMOVE]: () => maybeRemoveMember(db, channel, sender, payload),
     [commands.REPLY]: () => maybeReplyToHotlineMessage(db, channel, sender, payload),
@@ -166,6 +167,28 @@ const addAdminNotificationsOf = (channel, newAdminMembership, sender) => {
       message: messagesIn(membership.language).notifications.adminAdded,
     })),
   ]
+}
+
+// ADMINS
+const privateMessageAdmins = async (db, sock, channel, sender, payload) => {
+  const cr = messagesIn(sender.language).commandResponses.private
+  if (sender.type !== ADMIN) {
+    return { status: statuses.UNAUTHORIZED, message: cr.notAdmin }
+  }
+
+  const senderMessage = `[${messagesIn(sender.language).prefixes.privateMessage}]\n${payload}`
+  const notifications = getAllAdminsExcept(channel, [sender.phoneNumber]).map(admin => {
+    return {
+      recipient: admin.memberPhoneNumber,
+      message: `[${messagesIn(admin.language).prefixes.privateMessage}]\n${payload}`
+    }
+  })
+
+  return {
+    status: statuses.SUCCESS,
+    message: senderMessage,
+    notifications
+  }
 }
 
 // DECLINE

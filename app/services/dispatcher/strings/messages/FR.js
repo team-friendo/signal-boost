@@ -272,6 +272,13 @@ Si vous avez déjà une invitation, essayez d'envoyer ACCEPTER`,
     notSubscriber,
   },
 
+  // PRIVATE
+
+  private: {
+    notAdmin,
+    signalError: `Oups! Une erreur s'est produite lors de l'envoi d'un message privé aux administrateurs de cette chaîne. Veuillez essayer de nouveau!`
+  },
+
   // REMOVE
 
   remove: {
@@ -497,6 +504,8 @@ const prefixes = {
     memberType === memberTypes.ADMIN
       ? `RÉPONSE AU HOTLINE #${messageId}`
       : `RÉPONSE PRIVÉE DES ADMINS`,
+  broadcastMessage: `DIFFUSER`,
+  privateMessage: `PRIVÉ`,
 }
 
 module.exports = {
