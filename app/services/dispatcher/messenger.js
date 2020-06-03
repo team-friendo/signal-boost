@@ -32,9 +32,10 @@ const messageTypes = {
   HOTLINE_MESSAGE: 'HOTLINE_MESSAGE',
   COMMAND_RESULT: 'COMMAND_RESULT',
   SIGNUP_MESSAGE: 'SIGNUP_MESSAGE',
+  PRIVATE_MESSAGE: 'PRIVATE_MESSAGE',
 }
 
-const { BROADCAST_MESSAGE, HOTLINE_MESSAGE, COMMAND_RESULT, SIGNUP_MESSAGE } = messageTypes
+const { BROADCAST_MESSAGE, HOTLINE_MESSAGE, COMMAND_RESULT, SIGNUP_MESSAGE, PRIVATE_MESSAGE } = messageTypes
 
 const { ADMIN } = memberTypes
 
@@ -205,7 +206,11 @@ const relayHotlineMessage = async ({ db, sock, channel, sender, sdMessage }) => 
 }
 
 // (Database, Socket, Channel, string, Sender) -> Promise<void>
-const respond = ({ db, sock, channel, message, sender }) => {
+const respond = ({ db, sock, channel, message, sender, command, status }) => {
+  // FIX: PRIVATE command sends out all messages including to sender
+  // because respond doesn't handle attachments, don't want to repeat message here
+  if (command === commands.PRIVATE && status === statuses.SUCCESS) return
+
   return signal
     .sendMessage(sock, sender.phoneNumber, sdMessageOf(channel, message))
     .then(() => messageCountRepository.countCommand(db, channel))
@@ -280,6 +285,8 @@ const addHeader = ({ channel, sdMessage, messageType, language, memberType, mess
     } else {
       prefix = `[${channel.name}]\n`
     }
+  } else if (messageType === PRIVATE_MESSAGE) {
+    prefix = `[${messagesIn(language).prefixes.privateMessage}]\n`
   }
 
   return { ...sdMessage, messageBody: `${prefix}${sdMessage.messageBody}` }

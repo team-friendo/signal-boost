@@ -1311,7 +1311,16 @@ describe('executing commands', () => {
   })
 
   describe('PRIVATE command', () => {
+    let sendMessageStub
     const sdMessage = sdMessageOf(channel, 'PRIVATE hello this is private!')
+
+    beforeEach(async () => {
+      sendMessageStub = sinon.stub(signal, 'sendMessage')
+    })
+
+    afterEach(() => {
+      sendMessageStub.restore()
+    })
 
     describe('when sender is not an admin', () => {
       const dispatchable = { db, channel, sender: subscriber, sdMessage }
@@ -1330,22 +1339,33 @@ describe('executing commands', () => {
     describe('when sender is an admin', () => {
       const dispatchable = { db, channel, sender: admin, sdMessage }
 
-      it('returns the private messages to admins only', async () => {
-        expect(await processCommand(dispatchable)).to.eql({
+      it('returns a success status', async () => {
+        const result = await processCommand(dispatchable)
+        expect(result).to.eql({
           command: commands.PRIVATE,
-          message: '[PRIVATE]\nhello this is private!',
           payload: 'hello this is private!',
           status: statuses.SUCCESS,
-          notifications: [
-            {
-              message: "[PRIVATE]\nhello this is private!",
-              recipient: bystanderAdminMemberships[0].memberPhoneNumber
-            },
-            {
-              message: "[PRIVATE]\nhello this is private!",
-              recipient: bystanderAdminMemberships[1].memberPhoneNumber
-            }
-          ]
+          notifications: []
+        })
+      })
+
+      it('only messages admins', async () => {
+        const result = await processCommand(dispatchable)
+        const bystanderPhoneNumbers = bystanderAdminMemberships.concat([admin]).map(m => m.memberPhoneNumber).sort()
+        const sendMessageNumbers = sendMessageStub.getCalls().map((call) => call.args[1]).sort()
+        expect(sendMessageNumbers).to.eql(bystanderPhoneNumbers)
+      })
+
+      it('handles a signal sendMessage error', async () => {
+        sendMessageStub.returns(Promise.reject("signal failure"))
+
+        const result = await processCommand(dispatchable)
+        expect(result).to.eql({
+          command: commands.PRIVATE,
+          message: messagesIn(subscriber.language).commandResponses.private.signalError,
+          payload: 'hello this is private!',
+          status: statuses.ERROR,
+          notifications: []
         })
       })
     })
