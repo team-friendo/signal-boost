@@ -133,6 +133,9 @@ HOTLINE ON / OFF
 REPLY #1312
 -> sends private reply to [HOTLINE #1312]
 
+PRIVATE good evening admins
+-> sends private message "good evening admins" to all admins of the channel
+
 VOUCHING ON / OFF
 -> enables or disables requirement to receive an invite to subscribe
 

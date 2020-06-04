@@ -139,6 +139,9 @@ LÍNEA DIRECTA ACTIVADA / DESACTIVADA
 RESPONDER #1312
 -> envía una respuesta privada a [LÍNEA DIRECTA #1312]
 
+PRIVADO buenas noches, admins
+-> envía un mensaje privado "buenas noches, admins" a todos los administradores del canal
+
 ATESTIGUANDO ACTIVADA / DESACTIVADA
 -> activa o desactiva el requisito de recibir una invitación para suscribirse
 

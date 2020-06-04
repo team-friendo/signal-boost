@@ -139,6 +139,9 @@ HOTLINE ON / OFF
 RÉPONDRE #1312
 -> Envoie une réponse privée à [HOTLINE #1312]
 
+PRIVÉ bonsoir, admins
+-> envoie un message privé "bonsoir, admins" à tous les administrateurs de la chaîne
+
 SE PORTER GARANT ON / OFF
 -> Activer ou désactiver l'exigence de recevoir une invitation à s'abonner
 

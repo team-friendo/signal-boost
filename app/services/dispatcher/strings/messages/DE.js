@@ -135,6 +135,9 @@ HOTLINE AN / AUS
 ANTWORTEN #1312
 -> Sendet eine private Antwort an [HOTLINE #1312]
 
+PRIVAT Guten Abend, Admins
+-> sendet eine private Nachricht "Guten Abend, Admins" an alle Admins des Kanals
+
 VERTRAUEN AN / AUS
 -> Bestimmt ob es einer Einladung bedarf um sich beim Kanal anzumelden
 
