@@ -1,4 +1,5 @@
 const genericPool = require('generic-pool')
+const { v4: uuidv4 } = require('uuid')
 const net = require('net')
 const fs = require('fs-extra')
 const { pick, get } = require('lodash')
@@ -9,8 +10,9 @@ const {
   signal: {
     connectionInterval,
     maxConnectionAttempts,
-    minConnections,
-    maxConnections,
+    poolMinConnections,
+    poolMaxConnections,
+    poolEvictionMillis,
     verificationTimeout,
     signaldRequestTimeout,
   },
@@ -168,30 +170,54 @@ const connect = () => {
   }
 }
 
-const write = (pool, data) =>
+const write = (sock, data) =>
   new Promise((resolve, reject) =>
-    pool
-      .acquire()
-      .then(sock =>
-        sock.write(
-          signaldEncode(data),
-          promisifyCallback(resolve, e =>
-            reject({
-              status: statuses.ERROR,
-              message: `Error writing to signald socket: ${e.message}`,
-            }),
-          ),
-        ),
-      )
-      .catch(reject),
+    sock.write(
+      signaldEncode(data),
+      promisifyCallback(resolve, e =>
+        reject({
+          status: statuses.ERROR,
+          message: `Error writing to signald socket: ${e.message}`,
+        }),
+      ),
+    ),
   )
+
+const writeWithPool = async data => {
+  const uuid = uuidv4()
+  console.time(`acquire-${uuid}`)
+  const sock = await pool.acquire()
+  console.timeEnd(`acquire-${uuid}`)
+  new Promise((resolve, reject) => {
+    sock.write(
+      signaldEncode(data),
+      promisifyCallback(
+        () => {
+          pool.release(sock)
+          return resolve()
+        },
+        e => {
+          pool.release(sock)
+          return reject({
+            status: statuses.ERROR,
+            message: `Error writing to signald socket: ${e.message}`,
+          })
+        },
+      ),
+    )
+  })
+}
 
 const pool = genericPool.createPool(
   {
     create: getSocket,
-    destroy: socket => socket.close(),
+    destroy: socket => socket.destroy(),
   },
-  { min: minConnections, max: maxConnections },
+  {
+    min: poolMinConnections,
+    max: poolMaxConnections,
+    evictionRunIntervalMillis: poolEvictionMillis,
+  },
 )
 
 const signaldEncode = data => JSON.stringify(data) + '\n'
@@ -248,7 +274,7 @@ const unsubscribe = (sock, phoneNumber) =>
   write(sock, { type: messageTypes.UNSUBSCRIBE, username: phoneNumber })
 
 const sendMessage = (sock, recipientNumber, outboundMessage) =>
-  write(sock, { ...outboundMessage, recipientNumber })
+  writeWithPool({ ...outboundMessage, recipientNumber })
 
 // (Socket, Array<string>, OutMessage) -> Promise<void>
 const broadcastMessage = (sock, recipientNumbers, outboundMessage) =>

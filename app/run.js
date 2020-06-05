@@ -16,11 +16,10 @@ const run = async () => {
   logger.log('Connecting to signald socket...')
   const sock = await signal.getSocket().catch(logger.fatalError)
   logger.log('Connected to signald socket!')
-  sock.close() // close and switch to the pool
 
   await wait(500)
-  await registrar.run(db, signal.pool)
-  await dispatcher.run(db, signal.pool)
+  await registrar.run(db, sock)
+  await dispatcher.run(db, sock)
 
   logger.log('> Signalboost running!')
 }
