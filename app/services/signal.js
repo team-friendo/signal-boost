@@ -1,3 +1,4 @@
+const genericPool = require('generic-pool')
 const net = require('net')
 const fs = require('fs-extra')
 const { pick, get } = require('lodash')
@@ -5,7 +6,14 @@ const { promisifyCallback, wait } = require('./util.js')
 const { statuses } = require('../services/util')
 const { isEmpty } = require('lodash')
 const {
-  signal: { connectionInterval, maxConnectionAttempts, verificationTimeout, signaldRequestTimeout },
+  signal: {
+    connectionInterval,
+    maxConnectionAttempts,
+    minConnections,
+    maxConnections,
+    verificationTimeout,
+    signaldRequestTimeout,
+  },
 } = require('../config')
 
 /**
@@ -160,18 +168,31 @@ const connect = () => {
   }
 }
 
-const write = (sock, data) =>
+const write = (pool, data) =>
   new Promise((resolve, reject) =>
-    sock.write(
-      signaldEncode(data),
-      promisifyCallback(resolve, e =>
-        reject({
-          status: statuses.ERROR,
-          message: `Error writing to signald socket: ${e.message}`,
-        }),
-      ),
-    ),
+    pool
+      .acquire()
+      .then(sock =>
+        sock.write(
+          signaldEncode(data),
+          promisifyCallback(resolve, e =>
+            reject({
+              status: statuses.ERROR,
+              message: `Error writing to signald socket: ${e.message}`,
+            }),
+          ),
+        ),
+      )
+      .catch(reject),
   )
+
+const pool = genericPool.createPool(
+  {
+    create: getSocket,
+    destroy: socket => socket.close(),
+  },
+  { min: minConnections, max: maxConnections },
+)
 
 const signaldEncode = data => JSON.stringify(data) + '\n'
 
@@ -399,6 +420,7 @@ module.exports = {
   parseOutboundSdMessage,
   parseOutboundAttachment,
   parseVerificationCode,
+  pool,
   register,
   sendMessage,
   sdMessageOf,
