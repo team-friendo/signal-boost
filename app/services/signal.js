@@ -184,28 +184,29 @@ const write = (sock, data) =>
   )
 
 const writeWithPool = async data => {
-  const uuid = uuidv4()
-  console.time(`acquire-${uuid}`)
-  const sock = await pool.acquire()
-  console.timeEnd(`acquire-${uuid}`)
-  new Promise((resolve, reject) => {
-    sock.write(
-      signaldEncode(data),
-      promisifyCallback(
-        () => {
-          pool.release(sock)
-          return resolve()
-        },
-        e => {
-          pool.release(sock)
-          return reject({
-            status: statuses.ERROR,
-            message: `Error writing to signald socket: ${e.message}`,
-          })
-        },
-      ),
-    )
-  })
+  new Promise((resolve, reject) =>
+    pool
+      .acquire()
+      .then(sock =>
+        sock.write(
+          signaldEncode(data),
+          promisifyCallback(
+            () => {
+              pool.release(sock)
+              return resolve()
+            },
+            e => {
+              pool.release(sock)
+              return reject({
+                status: statuses.ERROR,
+                message: `Error writing to signald socket: ${e.message}`,
+              })
+            },
+          ),
+        ),
+      )
+      .catch(reject),
+  )
 }
 
 const pool = genericPool.createPool(
