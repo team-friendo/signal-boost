@@ -22,6 +22,11 @@ import {
 describe('signal module', () => {
   const sock = new EventEmitter()
   sock.setEncoding = () => null
+
+  afterEach(() => {
+    sinon.restore()
+  })
+
   describe('getting a socket', () => {
     let pathExistsStub, connectStub
 
