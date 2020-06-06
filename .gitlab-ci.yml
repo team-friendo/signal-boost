@@ -1,8 +1,8 @@
 image: node:10.16.3
 
 variables:
-  NODE_ENV: ci
-  POSTGRES_DB: signalboost_ci
+  NODE_ENV: test
+  POSTGRES_DB: signalboost_test
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   POSTGRES_HOST_AUTH_METHOD: trust
@@ -17,5 +17,5 @@ test_unit:
       alias: db
   script:
     - npm install
-    - npx sequelize db:migrate --env ci
-    - NODE_ENV=ci npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
+    - npx sequelize db:migrate --env test
+    - NODE_ENV=test npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
