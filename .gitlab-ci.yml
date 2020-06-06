@@ -1,0 +1,21 @@
+image: node:10.16.3
+
+services:
+  - postgres:latest
+
+variables:
+  POSTGRES_DB: signalboost_test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: ""
+  POSTGRES_HOST_AUTH_METHOD: trust
+
+cache:
+  paths:
+    - node_modules/
+
+test_unit:
+  script:
+    - npm install
+    - npx sequelize db:create --env test
+    - npx sequelize db:migrate --env test
+    - npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
