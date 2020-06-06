@@ -2,7 +2,7 @@ image: node:10.16.3
 
 variables:
   NODE_ENV: ci
-  POSTGRES_DB: signalboost_test
+  POSTGRES_DB: signalboost_ci
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   POSTGRES_HOST_AUTH_METHOD: trust
