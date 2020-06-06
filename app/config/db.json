@@ -19,6 +19,15 @@
     "connectionInterval": 10,
     "maxConnectionAttempts": 10
   },
+  "ci": {
+    "database": "signalboost_ci",
+    "dialect": "postgres",
+    "logging": false,
+    "username": "postgres",
+    "password": null,
+    "connectionInterval": 10,
+    "maxConnectionAttempts": 10
+  },
   "production": {
     "database": "signalboost",
     "host": "db",
