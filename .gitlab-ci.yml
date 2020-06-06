@@ -17,6 +17,5 @@ test_unit:
       alias: db
   script:
     - npm install
-    - npx sequelize db:create --env ci
     - npx sequelize db:migrate --env ci
     - NODE_ENV=ci npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
