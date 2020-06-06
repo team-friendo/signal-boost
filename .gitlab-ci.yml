@@ -13,7 +13,8 @@ cache:
 
 test_unit:
   services:
-    - postgres:latest
+    - name: postgres:latest
+      alias: db
   script:
     - npm install
     - npx sequelize db:create --env ci

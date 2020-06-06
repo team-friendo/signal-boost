@@ -21,7 +21,7 @@
   },
   "ci": {
     "database": "signalboost_ci",
-    "host": "postgres",
+    "host": "db",
     "dialect": "postgres",
     "logging": false,
     "username": "postgres",
