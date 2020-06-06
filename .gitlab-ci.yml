@@ -1,9 +1,7 @@
 image: node:10.16.3
 
-services:
-  - postgres:latest
-
 variables:
+  NODE_ENV: ci
   POSTGRES_DB: signalboost_test
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
@@ -14,6 +12,8 @@ cache:
     - node_modules/
 
 test_unit:
+  services:
+    - postgres:latest
   script:
     - npm install
     - npx sequelize db:create --env ci
