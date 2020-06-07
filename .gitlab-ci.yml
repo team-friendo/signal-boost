@@ -30,7 +30,7 @@ test_e2e:
       alias: signalboost_ngrok
   script:
     - apt-get update
-    - apt-get install jq
+    - apt-get -qq -y install jq
     - ./bin/entrypoint/test-e2e
   only:
     - merge_requests
