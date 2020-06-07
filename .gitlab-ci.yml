@@ -21,3 +21,14 @@ test_unit:
     - NODE_ENV=test npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
   only:
     - merge_requests
+
+test_e2e:
+  services:
+    - name: postgres:latest
+      alias: db
+    - name: wernight/ngrok
+      alias: signalboost_ngrok
+  script:
+    - ./bin/entrypoint/test-e2e
+  only:
+    - merge_requests
