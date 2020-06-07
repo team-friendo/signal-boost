@@ -1,36 +1,56 @@
-image: node:10.16.3
+# image: node:10.16.3
+
+# variables:
+#   NODE_ENV: test
+#   POSTGRES_DB: signalboost_test
+#   POSTGRES_USER: postgres
+#   POSTGRES_PASSWORD: ""
+#   POSTGRES_HOST_AUTH_METHOD: trust
+
+# cache:
+#   paths:
+#     - node_modules/
+
+# test_unit:
+#   services:
+#     - name: postgres:latest
+#       alias: db
+#   script:
+#     - npm install
+#     - npx sequelize db:migrate --env test
+#     - NODE_ENV=test npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
+#   only:
+#     - merge_requests
+
+# test_e2e:
+#   services:
+#     - name: postgres:latest
+#       alias: db
+#     - name: wernight/ngrok
+#       alias: ngrok
+#     - name: registry.0xacab.org/team-friendo/signalboost/signald:latest
+#       alias: signald
+#   script:
+#     - apt-get update
+#     - apt-get -qq -y install jq
+#     - ./bin/entrypoint/test-e2e
+#   only:
+#     - merge_requests
 
 variables:
-  NODE_ENV: test
-  POSTGRES_DB: signalboost_test
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: ""
-  POSTGRES_HOST_AUTH_METHOD: trust
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
 
-cache:
-  paths:
-    - node_modules/
+image:
+  name: docker/compose:latest
 
-test_unit:
-  services:
-    - name: postgres:latest
-      alias: db
+services:
+  - docker:dind
+
+before_script:
+  - docker version
+  - docker-compose version
+
+build:
   script:
-    - npm install
-    - npx sequelize db:migrate --env test
-    - NODE_ENV=test npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
-  only:
-    - merge_requests
-
-test_e2e:
-  services:
-    - name: postgres:latest
-      alias: db
-    - name: wernight/ngrok
-      alias: signalboost_ngrok
-  script:
-    - apt-get update
-    - apt-get -qq -y install jq
-    - ./bin/entrypoint/test-e2e
-  only:
-    - merge_requests
+    - make test.e2e
