@@ -29,6 +29,7 @@ test_e2e:
     - name: wernight/ngrok
       alias: signalboost_ngrok
   script:
+    - apt-get update
     - apt-get install jq
     - ./bin/entrypoint/test-e2e
   only:
