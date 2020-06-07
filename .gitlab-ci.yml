@@ -1,48 +1,48 @@
-# image: node:10.16.3
+image: node:10.16.3
 
-# variables:
-#   NODE_ENV: test
-#   POSTGRES_DB: signalboost_test
-#   POSTGRES_USER: postgres
-#   POSTGRES_PASSWORD: ""
-#   POSTGRES_HOST_AUTH_METHOD: trust
+variables:
+  NODE_ENV: test
+  POSTGRES_DB: signalboost_test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: ""
+  POSTGRES_HOST_AUTH_METHOD: trust
 
-# cache:
-#   paths:
-#     - node_modules/
+cache:
+  paths:
+    - node_modules/
 
-# test_unit:
-#   services:
-#     - name: postgres:latest
-#       alias: db
-#   script:
-#     - npm install
-#     - npx sequelize db:migrate --env test
-#     - NODE_ENV=test npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
-#   only:
-#     - merge_requests
-
-# test_e2e:
-#   services:
-#     - name: postgres:latest
-#       alias: db
-#     - name: wernight/ngrok
-#       alias: ngrok
-#     - name: registry.0xacab.org/team-friendo/signalboost/signald:latest
-#       alias: signald
-#   script:
-#     - apt-get update
-#     - apt-get -qq -y install jq
-#     - ./bin/entrypoint/test-e2e
-#   only:
-#     - merge_requests
-
-image:
-  name: docker:latest
-
-before_script:
-  - docker login -u $CI_DOCKER_USER -p $CI_DOCKER_PASS $CI_DOCKER_REGISTRY
-
-build:
+test_unit:
+  services:
+    - name: postgres:latest
+      alias: db
   script:
-    - make test.e2e
+    - npm install
+    - npx sequelize db:migrate --env test
+    - NODE_ENV=test npx mocha ./test/unit  -name '*.spec.js' --recursive -r babel-register --reporter dot --exit
+  only:
+    - merge_requests
+
+test_e2e:
+  services:
+    - name: postgres:latest
+      alias: db
+    - name: wernight/ngrok
+      alias: ngrok
+    - name: registry.0xacab.org/team-friendo/signalboost/signald:latest
+      alias: signald
+  script:
+    - apt-get update
+    - apt-get -qq -y install jq
+    - ./bin/entrypoint/test-e2e
+  only:
+    - merge_requests
+
+# image:
+#   name: docker:latest
+
+# before_script:
+#   - docker login -u $CI_DOCKER_USER -p $CI_DOCKER_PASS $CI_DOCKER_REGISTRY
+
+# build:
+#   script:
+#     - make test.e2e
