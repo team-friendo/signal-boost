@@ -4,6 +4,7 @@ const dbConfigsByEnv = require('./db.json')
 const jobConfigsByEnv = require('./job')
 const twilioConfigsByEnv = require('./twilio')
 const registrarConfigsByEnv = require('./registrar')
+const dispatcherConfigsByEnv = require('./dispatcher')
 const signalConfigsByEnv = require('./signal')
 const { defaultLanguage } = require('../services/language')
 
@@ -16,5 +17,6 @@ module.exports = {
   job: getConfig(jobConfigsByEnv),
   twilio: getConfig(twilioConfigsByEnv),
   registrar: getConfig(registrarConfigsByEnv),
+  dispatcher: getConfig(dispatcherConfigsByEnv),  
   signal: getConfig(signalConfigsByEnv),
 }

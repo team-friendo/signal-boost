@@ -12,7 +12,7 @@ function prometheusMetricsRoute(registry) {
   return async ctx => {
     ctx.type = registry.contentType()
     ctx.body = registry.metrics()
-  })  
+  }
 }
 
 module.exports = { prometheusMetricsRoute }
