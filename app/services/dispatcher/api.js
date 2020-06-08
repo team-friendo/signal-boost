@@ -19,7 +19,7 @@ const configureLogger = app => process.env.NODE_ENV !== 'test' && app.use(reques
 
 const configureRoutes = (app, metrics) => {
   const router = new Router()
-  routesOf(router)
+  routesOf(router, metrics)
   app.use(router.routes())
   app.use(router.allowedMethods())
 }

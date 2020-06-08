@@ -66,3 +66,23 @@ services:
     environment:
       - NGROK_PORT=app:3000
     restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    networks:
+      - default
+    volumes:
+      - ./conf/prometheus/:/etc/prometheus/
+      - ./prometheus_data:/prometheus_data
+    user: "${UID}:${GID}"      
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus_data'      
+    restart: unless-stopped
+    
+
+  
+    
+      
