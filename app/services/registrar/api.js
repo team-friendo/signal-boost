@@ -30,9 +30,9 @@ const configureBodyParser = app => {
   )
 }
 
-const configureRoutes = (app, db, sock) => {
+const configureRoutes = (app, db, sock, metrics) => {
   const router = new Router()
-  routesOf(router, db, sock)
+  routesOf(router, db, sock, metrics)
   app.use(router.routes())
   app.use(router.allowedMethods())
 }

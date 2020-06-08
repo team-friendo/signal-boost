@@ -51,3 +51,6 @@ signal_data
 /ansible/files/deploy_keys/.ssh/known_hosts
 /.env.dev
 /.env.pentest
+
+# local dev prometheus data volume
+prometheus_data

@@ -22,7 +22,7 @@ const routesOf = async (router, db, sock, metrics) => {
     merge(ctx, { status: httpStatusOf(get(result, 'status')) })
   })
 
-  router.get('/registrar-metrics', prometheusMetricsRoute(metrics))
+  router.get('/metrics', prometheusMetricsRoute(metrics))
 
   router.get('/channels', async ctx => {
     const result = await channelRegistrar.list(db)
