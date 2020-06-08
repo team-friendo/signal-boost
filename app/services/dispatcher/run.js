@@ -107,7 +107,7 @@ const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
     : []
 
   if (channel) {
-    channelMessageCounter.inc({ channel })
+    channelMessageCounter.inc({ channel: channel.phoneNumber })
   }
   
   // dispatch system-created messages
