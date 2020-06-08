@@ -72,16 +72,16 @@ const run = async (db, sock) => {
   
   logger.log(`----- Subscribing to channels...`)
   const channels = await channelRepository.findAllDeep(db).catch(logger.fatalError)
-  const listening = await listenForInboundMessages(db, sock, channels).catch(logger.fatalError)
+  const listening = await listenForInboundMessages(db, sock, metrics, channels).catch(logger.fatalError)
   logger.log(`----- Subscribed to ${listening.length} of ${channels.length} channels!`)
   logger.log(`--- Dispatcher running!`)
 }
 
-const listenForInboundMessages = async (db, sock, channels) => {
+const listenForInboundMessages = async (db, sock, metrics, channels) => {
   const resendQueue = {}
   const numListening = await Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber)))
   sock.on('data', inboundMsg =>
-    dispatch(db, sock, resendQueue, parseMessage(inboundMsg)).catch(logger.error),
+    dispatch(db, sock, metrics, resendQueue, parseMessage(inboundMsg)).catch(logger.error),
   )
   return numListening
 }
@@ -90,7 +90,14 @@ const listenForInboundMessages = async (db, sock, channels) => {
  * MESSAGE DISPATCH
  *******************/
 
-const dispatch = async (db, sock, resendQueue, inboundMsg) => {
+const channelMessageCounter = new prometheus.Counter({
+  name: 'dispatch_channel_message',
+  help: 'A message sent to a channel.',
+  labelNames: ['channel']
+});
+
+const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
+
   // retrieve db info we need for dispatching...
   const [channel, sender] = _isMessage(inboundMsg)
     ? await Promise.all([
@@ -99,6 +106,10 @@ const dispatch = async (db, sock, resendQueue, inboundMsg) => {
       ])
     : []
 
+  if (channel) {
+    channelMessageCounter.inc({ channel })
+  }
+  
   // dispatch system-created messages
   const rateLimitedMessage = detectRateLimitedMessage(inboundMsg, resendQueue)
   if (rateLimitedMessage) {
