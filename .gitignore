@@ -54,3 +54,4 @@ signal_data
 
 # local dev prometheus data volume
 prometheus_data
+grafana_data
