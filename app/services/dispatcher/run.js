@@ -1,3 +1,4 @@
+const prometheus = require('prom-client')
 const signal = require('../signal')
 const { sdMessageOf, messageTypes } = signal
 const channelRepository = require('./../../db/repositories/channel')
@@ -12,6 +13,7 @@ const { messagesIn } = require('./strings/messages')
 const { get, isEmpty, isNumber } = require('lodash')
 const {
   signal: { signupPhoneNumber },
+  dispatcher: { server: { port } }
 } = require('../../config')
 
 /**
@@ -55,9 +57,18 @@ const {
 const run = async (db, sock) => {
   logger.log('--- Initializing Dispatcher....')
 
-  // for debugging...
-  // sock.on('data', data => console.log(`+++++++++\n${data}\n++++++++\n`))
+  const metrics = new prometheus.Registry()
 
+  logger.log('----- Starting collection of default prometheus metrics for Dispatcher service.')
+  prometheus.collectDefaultMetrics({ register: metrics })    
+
+  if (process.env.LOG_SOCKET_DATA)
+    sock.on('data', data => console.log(`+++++++++\n${data}\n++++++++\n`))
+
+  logger.log(`----- Starting Dispatcher api server...`)
+  await api.startServer(port, metrics).catch(logger.error)
+  logger.log(`----- Api server listening on ${host}:${port}`)
+  
   logger.log(`----- Subscribing to channels...`)
   const channels = await channelRepository.findAllDeep(db).catch(logger.fatalError)
   const listening = await listenForInboundMessages(db, sock, channels).catch(logger.fatalError)

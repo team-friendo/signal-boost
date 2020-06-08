@@ -18,6 +18,7 @@ const run = async () => {
   logger.log('Connected to signald socket!')
 
   await wait(500)
+
   await registrar.run(db, sock)
   await dispatcher.run(db, sock)
 

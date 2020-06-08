@@ -1,18 +1,15 @@
 const Koa = require('koa')
-const bodyParser = require('koa-bodyparser')
 const requestLogger = require('koa-logger')
 const Router = require('koa-router')
-const { configureAuthenticator } = require('./middleware/authenticator')
 const routesOf = require('./routes')
 const logger = require('./logger')
 
-const startServer = async (port, db, sock, metrics) => {
+const startServer = async (port, metrics) => {
   const app = new Koa()
 
+  // note: does not configure body parser so won't parse POST bodies
   configureLogger(app)
-  configureBodyParser(app)
-  configureAuthenticator(app)
-  configureRoutes(app, db, sock, metrics)
+  configureRoutes(app, metrics)
 
   const server = await app.listen(port).on('error', logger.error)
   return Promise.resolve({ app, server })
@@ -20,19 +17,9 @@ const startServer = async (port, db, sock, metrics) => {
 
 const configureLogger = app => process.env.NODE_ENV !== 'test' && app.use(requestLogger())
 
-const configureBodyParser = app => {
-  app.use(
-    bodyParser({
-      extendTypes: {
-        json: ['application/x-javascript'],
-      },
-    }),
-  )
-}
-
-const configureRoutes = (app, db, sock) => {
+const configureRoutes = (app, metrics) => {
   const router = new Router()
-  routesOf(router, db, sock)
+  routesOf(router)
   app.use(router.routes())
   app.use(router.allowedMethods())
 }
