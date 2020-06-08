@@ -68,8 +68,8 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus
     ports:
+    image: prom/prometheus:v2.18.1
       - 9090:9090
     networks:
       - default
@@ -81,7 +81,8 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus_data'      
     restart: unless-stopped
-    
+
+  
 
   
     
