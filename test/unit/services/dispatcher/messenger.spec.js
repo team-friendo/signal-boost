@@ -15,6 +15,7 @@ import { sdMessageOf } from '../../../../app/services/signal'
 import { messagesIn } from '../../../../app/services/dispatcher/strings/messages'
 import { defaultLanguage } from '../../../../app/config'
 import channelRepository from '../../../../app/db/repositories/channel'
+import hotlineMessageRepository from '../../../../app/db/repositories/hotlineMessage'
 const {
   signal: { signupPhoneNumber, broadcastBatchSize },
 } = require('../../../../app/config')
@@ -25,6 +26,7 @@ describe('messenger service', () => {
   const channelPhoneNumber = genPhoneNumber()
   const subscriberPhoneNumbers = times(2, genPhoneNumber)
   const adminPhoneNumbers = times(4, genPhoneNumber)
+  const messageId = 42
   const channel = {
     name: 'foobar',
     phoneNumber: channelPhoneNumber,
@@ -118,7 +120,8 @@ describe('messenger service', () => {
       countCommandStub,
       countBroadcastStub,
       countHotlineStub,
-      setExpirationStub
+      setExpirationStub,
+      getMessageIdStub
 
     beforeEach(() => {
       broadcastSpy = sinon.spy(messenger, 'broadcast')
@@ -135,6 +138,9 @@ describe('messenger service', () => {
         .stub(messageCountRepository, 'countHotline')
         .returns(Promise.resolve())
       setExpirationStub = sinon.stub(signal, 'setExpiration').returns(Promise.resolve())
+      getMessageIdStub = sinon
+        .stub(hotlineMessageRepository, 'getMessageId')
+        .returns(Promise.resolve(messageId))
     })
 
     afterEach(() => {
@@ -146,6 +152,7 @@ describe('messenger service', () => {
       countBroadcastStub.restore()
       countHotlineStub.restore()
       setExpirationStub.restore()
+      getMessageIdStub.restore()
     })
 
     describe('a broadcast message', () => {
@@ -173,20 +180,20 @@ describe('messenger service', () => {
           it('broadcasts the message to all channel subscribers and admins in batches', () => {
             expect(broadcastMessageStub.getCall(0).args).to.eql([
               sock,
-              [...adminPhoneNumbers, ...subscriberPhoneNumbers].splice(0, 2),
-              { ...sdMessage, messageBody: '[foobar]\nplease help!' },
+              [...adminPhoneNumbers, ...subscriberPhoneNumbers].splice(0, 1),
+              { ...sdMessage, messageBody: '[DIFFUSER]\nplease help!' },
             ])
 
             expect(broadcastMessageStub.getCall(1).args).to.eql([
               sock,
-              [...adminPhoneNumbers, ...subscriberPhoneNumbers].splice(2, 2),
-              { ...sdMessage, messageBody: '[foobar]\nplease help!' },
+              [...adminPhoneNumbers, ...subscriberPhoneNumbers].splice(1, 1),
+              { ...sdMessage, messageBody: '[BROADCAST]\nplease help!' },
             ])
 
             expect(broadcastMessageStub.getCall(2).args).to.eql([
               sock,
-              [...adminPhoneNumbers, ...subscriberPhoneNumbers].splice(4, 2),
-              { ...sdMessage, messageBody: '[foobar]\nplease help!' },
+              [...adminPhoneNumbers, ...subscriberPhoneNumbers].splice(2, 1),
+              { ...sdMessage, messageBody: '[BROADCAST]\nplease help!' },
             ])
           })
 
@@ -221,10 +228,6 @@ describe('messenger service', () => {
                 },
               }),
           )
-
-          it('sends all messages without batching', () => {
-            expect(broadcastMessageStub.callCount).to.eql(1)
-          })
 
           it('it increments the broadcast count for the channel exactly once', () => {
             expect(countBroadcastStub.callCount).to.eql(1)
@@ -285,6 +288,7 @@ describe('messenger service', () => {
                 sdMessage,
                 messageType: messageTypes.HOTLINE_MESSAGE,
                 language: membership.language,
+                messageId,
               }).messageBody
               expect(sendMessageStub.getCall(index).args).to.eql([
                 sock,
@@ -327,6 +331,7 @@ describe('messenger service', () => {
                 sdMessage,
                 messageType: messageTypes.HOTLINE_MESSAGE,
                 language: membership.language,
+                messageId,
               }).messageBody
 
               expect(sendMessageStub.getCall(index).args).to.eql([
@@ -566,9 +571,26 @@ describe('messenger service', () => {
 
   describe('message headers', () => {
     describe('broadcast messages', () => {
-      it('adds a channel name header', () => {
-        const msg = { channel, sdMessage: sdMessageOf(channel, 'blah') }
+      it('adds a channel name header for non-admins', () => {
+        const msg = {
+          channel,
+          sdMessage: sdMessageOf(channel, 'blah'),
+          messageType: messenger.messageTypes.BROADCAST_MESSAGE,
+          memberType: 'SUBSCRIBER',
+        }
         expect(messenger.addHeader(msg)).to.eql(sdMessageOf(channel, '[foobar]\nblah'))
+      })
+
+      it('adds a broadcast header for admins', () => {
+        const msg = {
+          channel,
+          sdMessage: sdMessageOf(channel, 'blah'),
+          messageType: messenger.messageTypes.BROADCAST_MESSAGE,
+          memberType: 'ADMIN',
+        }
+        expect(messenger.addHeader(msg)).to.eql(
+          sdMessageOf(channel, `[${messages.prefixes.broadcastMessage}]\nblah`),
+        )
       })
     })
 
@@ -578,10 +600,12 @@ describe('messenger service', () => {
           channel,
           sdMessage: sdMessageOf(channel, 'blah'),
           messageType: messageTypes.HOTLINE_MESSAGE,
+          memberType: 'ADMIN',
           language: languages.EN,
+          messageId,
         }
         expect(messenger.addHeader(msg)).to.eql(
-          sdMessageOf(channel, `[${messages.prefixes.hotlineMessage}]\nblah`),
+          sdMessageOf(channel, `[${messages.prefixes.hotlineMessage(messageId)}]\nblah`),
         )
       })
     })

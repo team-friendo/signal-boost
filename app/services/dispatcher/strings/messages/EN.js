@@ -46,6 +46,9 @@ const parseErrors = {
 
   invalidVouchLevel: vouchLevel =>
     `"${vouchLevel}" is not a valid vouch level. Please use a number between 1 and ${maxVouchLevel}.`,
+
+  invalidHotlineMessageId: payload =>
+    `${payload} does not contain a valid hotline message number. A valid hotline message number looks like: #123`,
 }
 
 const invalidPhoneNumber = parseErrors.invalidPhoneNumber
@@ -126,6 +129,12 @@ REMOVE +1-555-555-5555
 
 HOTLINE ON / OFF
 -> enables or disables hotline
+
+REPLY #1312
+-> sends private reply to [HOTLINE #1312]
+
+PRIVATE good evening admins
+-> sends private message "good evening admins" to all admins of the channel
 
 VOUCHING ON / OFF
 -> enables or disables requirement to receive an invite to subscribe
@@ -257,6 +266,13 @@ If you already have an invite, try sending ACCEPT`,
     notSubscriber,
   },
 
+  // PRIVATE
+
+  private: {
+    notAdmin,
+    signalError: `Whoops! There was an error trying to private message the admins of this channel. Please try again!`,
+  },
+
   // REMOVE
 
   remove: {
@@ -277,6 +293,15 @@ Channel renamed from "${oldName}" to "${newName}".`,
       `[${oldName}]
 Whoops! There was an error renaming the channel [${oldName}] to [${newName}]. Try again!`,
     notAdmin,
+  },
+
+  // REPLY
+
+  hotlineReply: {
+    success: hotlineReply => notifications.hotlineReplyOf(hotlineReply, memberTypes.ADMIN),
+    notAdmin,
+    invalidMessageId: messageId =>
+      `Sorry, the hotline message identifier #${messageId} has expired or never existed.`,
   },
 
   // SET_LANGUAGE
@@ -389,14 +414,15 @@ Until then, they will be unable to send messages to or read messages from this c
   hotlineMessageSent: channel =>
     `Your message was forwarded to the admins of [${channel.name}].
 
-Send HELP to list valid commands. Send HELLO to subscribe.
-
-(Note: all messages are forwarded anonymously. Include your phone number if you want admins to respond to you individually.)`,
+Send HELP to list valid commands. Send HELLO to subscribe.`,
 
   hotlineMessagesDisabled: isSubscriber =>
     isSubscriber
       ? 'Sorry, this channel does not have a hotline enabled. Send HELP to list valid commands.'
       : 'Sorry, this channel does not have a hotline enabled. Send HELP to list valid commands or HELLO to subscribe.',
+
+  hotlineReplyOf: ({ messageId, reply }, memberType) =>
+    `[${prefixes.hotlineReplyOf(messageId, memberType)}]\n${reply}`,
 
   inviteReceived: channelName =>
     `Hello! You have received an invite to join the [${channelName}] Signalboost channel. Please respond with ACCEPT or DECLINE.`,
@@ -449,7 +475,13 @@ Reply with HELP for more info.`,
 }
 
 const prefixes = {
-  hotlineMessage: `HOTLINE MESSAGE`,
+  hotlineMessage: messageId => `HOTLINE #${messageId}`,
+  hotlineReplyOf: (messageId, memberType) =>
+    memberType === memberTypes.ADMIN
+      ? `REPLY TO HOTLINE #${messageId}`
+      : `PRIVATE REPLY FROM ADMINS`,
+  broadcastMessage: `BROADCAST`,
+  privateMessage: `PRIVATE`,
 }
 
 module.exports = {

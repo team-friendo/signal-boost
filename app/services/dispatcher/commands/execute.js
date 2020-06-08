@@ -1,14 +1,16 @@
 const { commands, toggles } = require('./constants')
 const { statuses } = require('../../../services/util')
+const messenger = require('../messenger')
 const channelRepository = require('../../../db/repositories/channel')
 const membershipRepository = require('../../../db/repositories/membership')
 const inviteRepository = require('../../../db/repositories/invite')
 const deauthorizationRepository = require('../../../db/repositories/deauthorization')
+const hotlineMessageRepository = require('../../../db/repositories/hotlineMessage')
 const phoneNumberService = require('../../../../app/services/registrar/phoneNumber')
 const signal = require('../../signal')
 const logger = require('../logger')
 const { get, isEmpty, uniq } = require('lodash')
-const { getAllAdminsExcept } = require('../../../db/repositories/channel')
+const { getAllAdminsExcept, getAdminMemberships } = require('../../../db/repositories/channel')
 const { messagesIn } = require('../strings/messages')
 const { memberTypes } = require('../../../db/repositories/membership')
 const { ADMIN, NONE } = memberTypes
@@ -32,43 +34,54 @@ const {
 // (ExecutableOrParseError, Dispatchable) -> Promise<CommandResult>
 const execute = async (executable, dispatchable) => {
   const { command, payload, language } = executable
-  const { db, sock, channel, sender } = dispatchable
+  const { db, sock, channel, sender, sdMessage } = dispatchable
 
   // don't allow ANY command execution on the signup channel for non-admins
   if (channel.phoneNumber === signupPhoneNumber && sender.type !== ADMIN) return noop()
 
   // if payload parse error occured return early and notify sender
-  if (executable.error)
+  if (executable.error) {
+    // sorry for this gross special casing! working fast during a mass mobilization! -aguestuser
+    const message =
+      command === commands.REPLY && sender.type !== memberTypes.ADMIN
+        ? messagesIn(sender.language).commandResponses.hotlineReply.notAdmin
+        : executable.error
     return {
       command,
       payload,
       status: statuses.ERROR,
-      message: executable.error,
+      message,
       notifications: [],
     }
+  }
 
   // otherwise, dispatch on the command issued, and process it!
-  const result = await ({
-    [commands.ACCEPT]: () => maybeAccept(db, channel, sender, language),
-    [commands.ADD]: () => maybeAddAdmin(db, sock, channel, sender, payload),
-    [commands.DECLINE]: () => decline(db, channel, sender, language),
-    [commands.DESTROY]: () => maybeConfirmDestroy(db, sock, channel, sender),
-    [commands.DESTROY_CONFIRM]: () => maybeDestroy(db, sock, channel, sender),
-    [commands.HELP]: () => showHelp(db, channel, sender),
-    [commands.INFO]: () => showInfo(db, channel, sender),
-    [commands.INVITE]: () => maybeInvite(db, channel, sender, payload, language),
-    [commands.JOIN]: () => maybeAddSubscriber(db, channel, sender, language),
-    [commands.LEAVE]: () => maybeRemoveSender(db, channel, sender),
-    [commands.RENAME]: () => maybeRenameChannel(db, channel, sender, payload),
-    [commands.REMOVE]: () => maybeRemoveMember(db, channel, sender, payload),
-    [commands.HOTLINE_ON]: () => maybeToggleSettingOn(db, channel, sender, toggles.HOTLINE),
-    [commands.HOTLINE_OFF]: () => maybeToggleSettingOff(db, channel, sender, toggles.HOTLINE),
-    [commands.VOUCHING_ON]: () => maybeToggleSettingOn(db, channel, sender, toggles.VOUCHING),
-    [commands.VOUCHING_OFF]: () => maybeToggleSettingOff(db, channel, sender, toggles.VOUCHING),
-    [commands.VOUCH_LEVEL]: () => maybeSetVouchLevel(db, channel, sender, payload),
-    [commands.SET_LANGUAGE]: () => setLanguage(db, sender, language),
-    [commands.SET_DESCRIPTION]: () => maybeSetDescription(db, channel, sender, payload),
-  }[command] || (() => noop()))()
+  const result = await (
+    {
+      [commands.ACCEPT]: () => maybeAccept(db, channel, sender, language),
+      [commands.ADD]: () => maybeAddAdmin(db, sock, channel, sender, payload),
+      [commands.DECLINE]: () => decline(db, channel, sender, language),
+      [commands.DESTROY]: () => maybeConfirmDestroy(db, sock, channel, sender),
+      [commands.DESTROY_CONFIRM]: () => maybeDestroy(db, sock, channel, sender),
+      [commands.HELP]: () => showHelp(db, channel, sender),
+      [commands.HOTLINE_ON]: () => maybeToggleSettingOn(db, channel, sender, toggles.HOTLINE),
+      [commands.HOTLINE_OFF]: () => maybeToggleSettingOff(db, channel, sender, toggles.HOTLINE),
+      [commands.INFO]: () => showInfo(db, channel, sender),
+      [commands.INVITE]: () => maybeInvite(db, channel, sender, payload, language),
+      [commands.JOIN]: () => maybeAddSubscriber(db, channel, sender, language),
+      [commands.LEAVE]: () => maybeRemoveSender(db, channel, sender),
+      [commands.PRIVATE]: () =>
+        maybePrivateMessageAdmins(db, sock, channel, sender, payload, sdMessage),
+      [commands.RENAME]: () => maybeRenameChannel(db, channel, sender, payload),
+      [commands.REMOVE]: () => maybeRemoveMember(db, channel, sender, payload),
+      [commands.REPLY]: () => maybeReplyToHotlineMessage(db, channel, sender, payload),
+      [commands.VOUCHING_ON]: () => maybeToggleSettingOn(db, channel, sender, toggles.VOUCHING),
+      [commands.VOUCHING_OFF]: () => maybeToggleSettingOff(db, channel, sender, toggles.VOUCHING),
+      [commands.VOUCH_LEVEL]: () => maybeSetVouchLevel(db, channel, sender, payload),
+      [commands.SET_LANGUAGE]: () => setLanguage(db, sender, language),
+      [commands.SET_DESCRIPTION]: () => maybeSetDescription(db, channel, sender, payload),
+    }[command] || (() => noop())
+  )()
 
   result.notifications = result.notifications || []
   return { command, payload, ...result }
@@ -160,6 +173,32 @@ const addAdminNotificationsOf = (channel, newAdminMembership, sender) => {
   ]
 }
 
+// ADMINS
+const maybePrivateMessageAdmins = async (db, sock, channel, sender, payload, sdMessage) => {
+  const cr = messagesIn(sender.language).commandResponses.private
+  if (sender.type !== ADMIN) {
+    return { status: statuses.UNAUTHORIZED, message: cr.notAdmin }
+  }
+
+  return Promise.all(
+    getAdminMemberships(channel).map(admin => {
+      return signal.sendMessage(
+        sock,
+        admin.memberPhoneNumber,
+        messenger.addHeader({
+          channel,
+          sdMessage: { ...sdMessage, messageBody: payload },
+          messageType: messenger.messageTypes.PRIVATE_MESSAGE,
+          language: admin.language,
+          memberType: admin.type,
+        }),
+      )
+    }),
+  )
+    .then(() => ({ status: statuses.SUCCESS }))
+    .catch(() => ({ status: statuses.ERROR, message: cr.signalError }))
+}
+
 // DECLINE
 
 const decline = async (db, channel, sender, language) => {
@@ -245,7 +284,10 @@ const maybeInvite = async (db, channel, sender, inviteePhoneNumbers, language) =
   if (!isEmpty(errors)) {
     return {
       status: statuses.ERROR,
-      message: cr.dbErrors(errors.map(e => e.inviteePhoneNumber), inviteResults.length),
+      message: cr.dbErrors(
+        errors.map(e => e.inviteePhoneNumber),
+        inviteResults.length,
+      ),
       notifications,
     }
   }
@@ -455,6 +497,54 @@ const renameNotificationsOf = (channel, newChannelName, sender) => {
     message: messagesIn(sender.language).notifications.channelRenamed(channel.name, newChannelName),
   }))
 }
+
+// REPLY
+
+const maybeReplyToHotlineMessage = (db, channel, sender, hotlineReply) => {
+  const cr = messagesIn(sender.language).commandResponses.hotlineReply
+  if (sender.type !== ADMIN) {
+    return { status: statuses.UNAUTHORIZED, message: cr.notAdmin }
+  }
+  return replyToHotlineMessage(db, channel, sender, hotlineReply, cr)
+}
+
+const replyToHotlineMessage = async (db, channel, sender, hotlineReply, cr) => {
+  try {
+    const memberPhoneNumber = await hotlineMessageRepository.findMemberPhoneNumber({
+      db,
+      id: hotlineReply.messageId,
+    })
+    const membership = await membershipRepository.findMembership(
+      db,
+      channel.phoneNumber,
+      memberPhoneNumber,
+    )
+    return {
+      status: statuses.SUCCESS,
+      message: cr.success(hotlineReply),
+      notifications: hotlineReplyNotificationsOf(channel, sender, hotlineReply, membership),
+    }
+  } catch (e) {
+    return {
+      status: statuses.ERROR,
+      message: cr.invalidMessageId(hotlineReply.messageId),
+    }
+  }
+}
+
+const hotlineReplyNotificationsOf = (channel, sender, hotlineReply, membership) => [
+  {
+    recipient: membership.memberPhoneNumber,
+    message: messagesIn(membership.language).notifications.hotlineReplyOf(
+      hotlineReply,
+      memberTypes.SUBSCRIBER,
+    ),
+  },
+  ...getAllAdminsExcept(channel, [sender.phoneNumber]).map(({ memberPhoneNumber, language }) => ({
+    recipient: memberPhoneNumber,
+    message: messagesIn(language).notifications.hotlineReplyOf(hotlineReply, memberTypes.ADMIN),
+  })),
+]
 
 // ON / OFF TOGGLES FOR RESPONSES, VOUCHING
 

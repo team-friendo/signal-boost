@@ -48,6 +48,9 @@ const parseErrors = {
 
   invalidVouchLevel: invalidVouchLevel =>
     `"${invalidVouchLevel} n'est pas un niveau de porter garant valide. Veuillez utiliser un nombre compris entre 1 et ${maxVouchLevel}.`,
+
+  invalidHotlineMessageId: payload =>
+    `${payload} ne contient pas de numéro de message hotline valide. Un numéro de message de hotline valide ressemble à: #123`,
 }
 
 const invalidPhoneNumber = parseErrors.invalidPhoneNumber
@@ -132,6 +135,12 @@ SUPPRIMER +33612345678
 
 HOTLINE ON / OFF
 -> Activer ou désactiver la hotline
+
+RÉPONDRE #1312
+-> Envoie une réponse privée à [HOTLINE #1312]
+
+PRIVÉ bonsoir, admins
+-> envoie un message privé "bonsoir, admins" à tous les administrateurs de la chaîne
 
 SE PORTER GARANT ON / OFF
 -> Activer ou désactiver l'exigence de recevoir une invitation à s'abonner
@@ -266,6 +275,13 @@ Si vous avez déjà une invitation, essayez d'envoyer ACCEPTER`,
     notSubscriber,
   },
 
+  // PRIVATE
+
+  private: {
+    notAdmin,
+    signalError: `Oups! Une erreur s'est produite lors de l'envoi d'un message privé aux administrateurs de cette chaîne. Veuillez essayer de nouveau!`,
+  },
+
   // REMOVE
 
   remove: {
@@ -286,6 +302,15 @@ Canal nom changé de "${oldName}" à "${newName}”.`,
       `[${oldName}]
 Oups! Une erreur s’est produite en tentant de renommer le canal de [${oldName}] à [${newName}]. Veuillez essayer de nouveau!`,
     notAdmin,
+  },
+
+  // REPLY
+
+  hotlineReply: {
+    success: hotlineReply => notifications.hotlineReplyOf(hotlineReply, memberTypes.ADMIN),
+    notAdmin,
+    invalidMessageId: messageId =>
+      `Désolé, l'identifiant de message de la hotline #${messageId} a expiré ou n'a jamais existé.`,
   },
 
   // SET_LANGUAGE
@@ -409,14 +434,15 @@ Ielles seront incapables d’envoyer ou de lire des messages sur ce canal avant 
   hotlineMessageSent: channel =>
     `Votre message a été transmis de manière anonyme aux admins de [${channel.name}].
 
-Envoyez AIDE pour répertorier les commandes valides. Envoyez SALUT pour vous abonner.
-
-(Remarque: tous les messages sont transmis de manière anonyme. Indiquez votre numéro de téléphone si vous souhaitez que les admins vous répondent individuellement.)`,
+Envoyez AIDE pour répertorier les commandes valides. Envoyez SALUT pour vous abonner.`,
 
   hotlineMessagesDisabled: isSubscriber =>
     isSubscriber
       ? 'Désolé, la hotline n’est pas activé sur ce canal. Envoyez AIDE pour répertorier les commandes valides.'
       : 'Désolé, la hotline n’est pas activé sur ce canal. Envoyez AIDE pour lister les commandes valides ou SALUT pour vous abonner.',
+
+  hotlineReplyOf: ({ messageId, reply }, memberType) =>
+    `[${prefixes.hotlineReplyOf(messageId, memberType)}]\n${reply}`,
 
   inviteReceived: channelName =>
     `Bonjour! Vous avez reçu le invitation pour rejoindre la chaîne Signalboost de ${channelName}. Veuillez répondre avec ACCEPTER ou REFUSER.`,
@@ -432,7 +458,7 @@ Envoyez AIDE pour répertorier les commandes valides. Envoyez SALUT pour vous ab
     'Ce numéro accepte uniquement les messages envoyés avec Signal Private Messenger. Veuillez installer Signal depuis https://signal.org et réessayer.',
 
   noop: 'Oups! Ceci n’est pas une commande!',
-  
+
   unauthorized:
     'Oups! La hotline est désactivée. Pour le moment, ce canal acceptera uniquement des commandes. Commande AIDE pour voir le menu de commandes valides!',
 
@@ -476,7 +502,13 @@ Commande AIDE pour plus de renseignements.`,
 }
 
 const prefixes = {
-  hotlineMessage: `HOTLINE`,
+  hotlineMessage: messageId => `HOTLINE #${messageId}`,
+  hotlineReplyOf: (messageId, memberType) =>
+    memberType === memberTypes.ADMIN
+      ? `RÉPONSE AU HOTLINE #${messageId}`
+      : `RÉPONSE PRIVÉE DES ADMINS`,
+  broadcastMessage: `DIFFUSER`,
+  privateMessage: `PRIVÉ`,
 }
 
 module.exports = {
