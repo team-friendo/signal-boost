@@ -8,12 +8,13 @@ const executor = require('./commands')
 const messenger = require('./messenger')
 const resend = require('./resend')
 const logger = require('./logger')
+const api = require('./api')
 const safetyNumberService = require('../registrar/safetyNumbers')
 const { messagesIn } = require('./strings/messages')
 const { get, isEmpty, isNumber } = require('lodash')
 const {
   signal: { signupPhoneNumber },
-  dispatcher: { server: { port } }
+  dispatcher: { server: { host, port } }
 } = require('../../config')
 
 /**

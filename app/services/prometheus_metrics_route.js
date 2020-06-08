@@ -10,7 +10,7 @@
 */
 function prometheusMetricsRoute(registry) {
   return async ctx => {
-    ctx.type = registry.contentType()
+    ctx.type = registry.contentType
     ctx.body = registry.metrics()
   }
 }
