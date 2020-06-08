@@ -20,6 +20,7 @@ import { wait } from '../../../../app/services/util'
 import { messagesIn } from '../../../../app/services/dispatcher/strings/messages'
 import { adminMembershipFactory } from '../../../support/factories/membership'
 import { inboundAttachmentFactory } from '../../../support/factories/sdMessage'
+import api from '../../../../app/services/dispatcher/api'
 const {
   signal: { defaultMessageExpiryTime, signupPhoneNumber, minResendInterval },
 } = require('../../../../app/config')
@@ -65,11 +66,12 @@ describe('dispatcher service', () => {
     logAndReturnSpy,
     logErrorSpy,
     sendMessageStub,
-    enqueueResendStub
+    enqueueResendStub,
+    startServerStub
 
   beforeEach(async () => {
     // initialization stubs --v
-
+    
     findAllDeepStub = sinon
       .stub(channelRepository, 'findAllDeep')
       .returns(Promise.resolve(channels))
@@ -112,6 +114,8 @@ describe('dispatcher service', () => {
     logErrorSpy = sinon.spy(logger, 'error')
     // onReceivedMessage stubs --^
 
+    startServerStub = sinon.stub(api, 'startServer').returns(Promise.resolve())    
+
     await run(db, sock)
   })
 
@@ -129,6 +133,7 @@ describe('dispatcher service', () => {
     logErrorSpy.restore()
     sendMessageStub.restore()
     enqueueResendStub.restore()
+    startServerStub.restore()    
   })
 
   describe('handling an incoming message', () => {

@@ -42,7 +42,8 @@ describe('registrar service', () => {
     })
 
     it('initializes an api server', () => {
-      expect(startServerStub.getCall(0).args).to.eql([3000, db, sock])
+      expect(startServerStub.getCall(0).args.slice(0,3)).to.eql([3000, db, sock])
+      expect(startServerStub.getCall(0).args[3]).to.be.an('object')
     })
 
     it('launches an invite deletion job', () => {

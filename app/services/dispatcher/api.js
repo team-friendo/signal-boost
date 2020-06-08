@@ -1,7 +1,7 @@
 const Koa = require('koa')
 const requestLogger = require('koa-logger')
 const Router = require('koa-router')
-const routesOf = require('./routes')
+const { routesOf } = require('./routes')
 const logger = require('./logger')
 
 const startServer = async (port, metrics) => {
