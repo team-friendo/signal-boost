@@ -42,8 +42,6 @@ const execute = async (executable, dispatchable) => {
   // if payload parse error occured return early and notify sender
   if (executable.error) {
 
-    executableErrorCounter.inc({ channel, command })
-    
     // sorry for this gross special casing! working fast during a mass mobilization! -aguestuser
     const message =
       command === commands.REPLY && sender.type !== memberTypes.ADMIN

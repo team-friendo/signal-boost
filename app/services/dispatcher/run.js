@@ -79,7 +79,7 @@ const listenForInboundMessages = async (db, sock, channels) => {
   const resendQueue = {}
   const numListening = await Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber)))
   sock.on('data', inboundMsg =>
-    dispatch(db, sock, metrics, resendQueue, parseMessage(inboundMsg)).catch(logger.error),
+    dispatch(db, sock, resendQueue, parseMessage(inboundMsg)).catch(logger.error),
   )
   return numListening
 }
@@ -88,7 +88,7 @@ const listenForInboundMessages = async (db, sock, channels) => {
  * MESSAGE DISPATCH
  *******************/
 
-const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
+const dispatch = async (db, sock, resendQueue, inboundMsg) => {
 
   // retrieve db info we need for dispatching...
   const [channel, sender] = _isMessage(inboundMsg)
@@ -126,13 +126,13 @@ const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
   if (isNumber(newExpiryTime)) await updateExpiryTime(db, sock, sender, channel, newExpiryTime)
 
   // dispatch user-created messages
-  if (shouldRelay(inboundMsg)) return relay(db, sock, metrics, channel, sender, inboundMsg)
+  if (shouldRelay(inboundMsg)) return relay(db, sock, channel, sender, inboundMsg)
 }
 
-const relay = async (db, sock, metrics, channel, sender, inboundMsg) => {
+const relay = async (db, sock, channel, sender, inboundMsg) => {
   const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
   try {
-    const dispatchable = { db, sock, metrics, channel, sender, sdMessage }
+    const dispatchable = { db, sock, channel, sender, sdMessage }
     const commandResult = await executor.processCommand(dispatchable)
     return messenger.dispatch({ dispatchable, commandResult })
   } catch (e) {
