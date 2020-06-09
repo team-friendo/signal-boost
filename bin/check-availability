@@ -4,7 +4,6 @@ echo "--- checking environment..."
 
 pushd `pwd` > /dev/null # store current dir
 cd `dirname "$0"` # cd to script path
-source ../.env # source env vars
 
 if [ -z $SIGNALBOOST_API_TOKEN ];then
   echo "--- ERROR: no SIGNALBOOST_API_TOKEN found. Try \`make unlock\` then running again."

@@ -2,7 +2,6 @@
 
 pushd `pwd` > /dev/null # store current dir
 cd `dirname "$0"` # cd to script path
-source ../../.env.dev
 
 check-until-ngrok-url-available(){
   echo "checking ngrok..."
