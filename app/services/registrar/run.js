@@ -1,4 +1,4 @@
-const prometheus = require('prom-client')
+const metrics = require('./metrics')
 const logger = require('./logger')
 const phoneNumberRegistrar = require('./phoneNumber')
 const inviteRepository = require('../../db/repositories/invite')
@@ -12,13 +12,11 @@ const {
 const run = async (db, sock) => {
   logger.log('--- Initializing Registrar...')
 
-  const metrics = new prometheus.Registry()
-
+//  metrics.collectDefaults()    
   logger.log('----- Starting collection of default prometheus metrics for Registrar service.')
-  prometheus.collectDefaultMetrics({ register: metrics })    
   
   logger.log(`----- Starting Registrar api server...`)
-  await api.startServer(port, db, sock, metrics).catch(logger.error)
+  await api.startServer(port, db, sock).catch(logger.error)
   logger.log(`----- Api server listening on ${host}:${port}`)
 
   logger.log('----- Registering phone numbers...')

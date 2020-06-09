@@ -15,7 +15,6 @@ import { Registry } from 'prom-client'
 describe('routes', () => {
   const db = { fake: 'db' }
   const sock = { fake: 'sock' }
-  const metrics = new Registry()
   const phoneNumber = genPhoneNumber()
   const verificationMessage = 'Your Signal verification code: 890-428 for +14322239406'
   const verifiedStatuses = times(3, () => ({
@@ -41,7 +40,7 @@ describe('routes', () => {
   }
 
   let server
-  before(async () => (server = (await startServer(200, db, sock, metrics)).server))
+  before(async () => (server = (await startServer(200, db, sock)).server))
   after(() => server.close())
 
   describe('GET /metrics', () => {

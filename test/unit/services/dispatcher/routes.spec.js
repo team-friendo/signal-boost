@@ -7,10 +7,8 @@ import { startServer } from '../../../../app/services/dispatcher/api'
 
 describe("dispatcher routes", () => {
 
-  const metrics = new Registry()
-
   let server
-  before(async () => (server = (await startServer(200, metrics)).server))
+  before(async () => (server = (await startServer(200)).server))
   after(() => server.close())
 
   describe('GET /metrics', () => {

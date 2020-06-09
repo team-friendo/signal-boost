@@ -4,14 +4,12 @@ const channelRegistrar = require('./channel')
 const { get, find, merge } = require('lodash')
 const signal = require('../signal')
 const { prometheusMetricsRoute } = require('../prometheus_metrics_route')
+const metrics = require('./metrics')
 const {
   twilio: { smsEndpoint },
 } = require('../../config/index')
 
-/*
-  `metrics` is a prom-client Registry. See ../prometheus_metrics_route.js.
-*/
-const routesOf = async (router, db, sock, metrics) => {
+const routesOf = async (router, db, sock) => {
 
   router.get('/hello', async ctx => {
     ctx.body = { msg: 'hello world' }
@@ -22,7 +20,7 @@ const routesOf = async (router, db, sock, metrics) => {
     merge(ctx, { status: httpStatusOf(get(result, 'status')) })
   })
 
-  router.get('/metrics', prometheusMetricsRoute(metrics))
+  router.get('/metrics', prometheusMetricsRoute(metrics.register))
 
   router.get('/channels', async ctx => {
     const result = await channelRegistrar.list(db)

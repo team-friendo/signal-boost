@@ -1,4 +1,4 @@
-const prometheus = require('prom-client')
+const metrics = require('./metrics')
 const signal = require('../signal')
 const { sdMessageOf, messageTypes } = signal
 const channelRepository = require('./../../db/repositories/channel')
@@ -58,26 +58,24 @@ const {
 const run = async (db, sock) => {
   logger.log('--- Initializing Dispatcher....')
 
-  const metrics = new prometheus.Registry()
-
   logger.log('----- Starting collection of default prometheus metrics for Dispatcher service.')
-  prometheus.collectDefaultMetrics({ register: metrics })    
-
+  metrics.collectDefaults()
+  
   if (process.env.LOG_SOCKET_DATA)
     sock.on('data', data => console.log(`+++++++++\n${data}\n++++++++\n`))
 
   logger.log(`----- Starting Dispatcher api server...`)
-  await api.startServer(port, metrics).catch(logger.error)
+  await api.startServer(port).catch(logger.error)
   logger.log(`----- Api server listening on ${host}:${port}`)
   
   logger.log(`----- Subscribing to channels...`)
   const channels = await channelRepository.findAllDeep(db).catch(logger.fatalError)
-  const listening = await listenForInboundMessages(db, sock, metrics, channels).catch(logger.fatalError)
+  const listening = await listenForInboundMessages(db, sock, channels).catch(logger.fatalError)
   logger.log(`----- Subscribed to ${listening.length} of ${channels.length} channels!`)
   logger.log(`--- Dispatcher running!`)
 }
 
-const listenForInboundMessages = async (db, sock, metrics, channels) => {
+const listenForInboundMessages = async (db, sock, channels) => {
   const resendQueue = {}
   const numListening = await Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber)))
   sock.on('data', inboundMsg =>
@@ -90,12 +88,6 @@ const listenForInboundMessages = async (db, sock, metrics, channels) => {
  * MESSAGE DISPATCH
  *******************/
 
-const channelMessageCounter = new prometheus.Counter({
-  name: 'dispatch_channel_message',
-  help: 'A message sent to a channel.',
-  labelNames: ['channel']
-});
-
 const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
 
   // retrieve db info we need for dispatching...
@@ -107,7 +99,7 @@ const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
     : []
 
   if (channel) {
-    channelMessageCounter.inc({ channel: channel.phoneNumber })
+    metrics.channelMessages.inc({ channel: channel.phoneNumber })
   }
   
   // dispatch system-created messages
@@ -134,13 +126,13 @@ const dispatch = async (db, sock, metrics, resendQueue, inboundMsg) => {
   if (isNumber(newExpiryTime)) await updateExpiryTime(db, sock, sender, channel, newExpiryTime)
 
   // dispatch user-created messages
-  if (shouldRelay(inboundMsg)) return relay(db, sock, channel, sender, inboundMsg)
+  if (shouldRelay(inboundMsg)) return relay(db, sock, metrics, channel, sender, inboundMsg)
 }
 
-const relay = async (db, sock, channel, sender, inboundMsg) => {
+const relay = async (db, sock, metrics, channel, sender, inboundMsg) => {
   const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
   try {
-    const dispatchable = { db, sock, channel, sender, sdMessage }
+    const dispatchable = { db, sock, metrics, channel, sender, sdMessage }
     const commandResult = await executor.processCommand(dispatchable)
     return messenger.dispatch({ dispatchable, commandResult })
   } catch (e) {
