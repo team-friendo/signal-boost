@@ -12,7 +12,7 @@ const {
 const run = async (db, sock) => {
   logger.log('--- Initializing Registrar...')
 
-//  metrics.collectDefaults()    
+  metrics.collectDefaults()    
   logger.log('----- Starting collection of default prometheus metrics for Registrar service.')
   
   logger.log(`----- Starting Registrar api server...`)

@@ -18,12 +18,20 @@ const channelMessagesInFlight = new prometheus.Gauge(register({
   labelNames: ['channel']
 }))
 
+const channelMessageDuration = new prometheus.Gauge(register({
+  name: 'channel_message_duration',
+  help: 'An estimate of the duration of each channel+recipient message broadcast ' +
+    'from sending it to signald to receiving isReceipt: true from signald.',
+  labelNames: ['channel', 'recipient']
+}))
+
 module.exports = {
   registry,  
   collectDefaults,
   signaldMessages,
   channelMessages,
-  channelMessagesInFlight
+  channelMessagesInFlight,
+  channelMessageDuration
 }
 
 
