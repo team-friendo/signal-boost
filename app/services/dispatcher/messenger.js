@@ -139,12 +139,12 @@ const handleCommandResult = async ({ commandResult, dispatchable }) => {
  ************/
 
 // Dispatchable -> Promise<MessageCount>
-const broadcast = async ({ db, sock, channel, sdMessage, _messagesInFlight }) => {
+const broadcast = async ({ db, sock, channel, sdMessage, messagesInFlight }) => {
   const recipients = channel.memberships
 
   // keep track of number of msgs in flight
   const recordSend = recipient => 
-    Promise.resolve(_messagesInFlight.launch(
+    Promise.resolve(messagesInFlight.launch(
       channel.phoneNumber,
       recipient.memberPhoneNumber
     ))

@@ -1,22 +1,19 @@
 const _ = require('lodash')
 const metrics = require('./metrics')
 
-module.exports.empty = function () {
+const inFlight = metrics.channelMessagesInFlight
 
-  const counts = metrics.channelMessagesInFlight
-
-  function launch(channel, recipient) {
-    counts.inc({ channel })
-  }
-
-  function land(channel, recipient) {
-    counts.dec({ channel })
-  }
-
-  counts.reset()
-  return {
-    launch, land
-  }
+function launch(channel, recipient) {
+  inFlight.inc({ channel })    
 }
+
+function land(channel, recipient) {
+  inFlight.dec({ channel })
+}
+
+module.exports = {
+  launch, land
+}
+
 
 

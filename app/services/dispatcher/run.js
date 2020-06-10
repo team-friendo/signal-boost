@@ -1,4 +1,5 @@
 const metrics = require('./metrics')
+const messagesInFlight = require('./messages_in_flight')
 const signal = require('../signal')
 const { sdMessageOf, messageTypes } = signal
 const channelRepository = require('./../../db/repositories/channel')
@@ -92,8 +93,6 @@ const listenForInboundMessages = async (db, sock, channels) => {
  * MESSAGE DISPATCH
  *******************/
 
-let _messagesInFlight = require('./messages_in_flight').empty()
-
 const _isMessageReceipt = (msg) => msg.type == 'message' && msg.data.isReceipt
 const _messageChannel = (msg) => msg.data.username
 const _messageSource = (msg) => msg.data.source
@@ -120,8 +119,8 @@ const dispatch = async (db, sock, resendQueue, inboundMsg) => {
   metrics.signaldMessages.inc({ type: inboundMsg.type })
 
   if (isDeliveredMessageReceipt(inboundMsg)) {
-    _messagesInFlight.land(_messageChannel(inboundMsg),
-                           _messageSource(inboundMsg))
+    messagesInFlight.land(_messageChannel(inboundMsg),
+                          _messageSource(inboundMsg))
   }
 
   // retrieve db info we need for dispatching...
@@ -166,7 +165,7 @@ const dispatch = async (db, sock, resendQueue, inboundMsg) => {
 const relay = async (db, sock, channel, sender, inboundMsg) => {
   const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
   try {
-    const dispatchable = { db, sock, channel, sender, sdMessage, _messagesInFlight }
+    const dispatchable = { db, sock, channel, sender, sdMessage, messagesInFlight }
     const commandResult = await executor.processCommand(dispatchable)
     return messenger.dispatch({ dispatchable, commandResult })
   } catch (e) {
