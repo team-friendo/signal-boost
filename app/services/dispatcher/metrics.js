@@ -1,20 +1,21 @@
-const prometheus = require('prom-client')
+const { prometheus, registry, register, collectDefaults } = require('../metrics_module')()
 
-const register = new prometheus.Registry()
+const signaldMessages = new prometheus.Counter(register({
+  name: 'signald_message_count',
+  help: 'The number of messages received from signald since the process started.',
+  labelNames: ['type']
+}))
 
-function collectDefaults() {
-  prometheus.collectDefaultMetrics({ register })    
-}
-
-const channelMessages = new prometheus.Counter({
-  register,
+const channelMessages = new prometheus.Counter(register({
   name: 'channel_message_count',
-  help: 'The number of channel messages received since the process started.'
-})
+  help: 'The number of channel messages received from signald since the process started.',
+  labelNames: ['channel']
+}))
 
 module.exports = {
-  register,
+  registry,  
   collectDefaults,
+  signaldMessages,
   channelMessages
 }
 

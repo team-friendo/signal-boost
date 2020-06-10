@@ -10,8 +10,10 @@
 */
 function prometheusMetricsRoute(registry) {
   return async ctx => {
-    ctx.type = registry.contentType
-    ctx.body = registry.metrics()
+    Object.assign(ctx, {
+      type: registry.contentType,
+      body: registry.metrics()
+    })
   }
 }
 

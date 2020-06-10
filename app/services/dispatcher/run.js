@@ -61,9 +61,6 @@ const run = async (db, sock) => {
   logger.log('----- Starting collection of default prometheus metrics for Dispatcher service.')
   metrics.collectDefaults()
   
-  if (process.env.LOG_SOCKET_DATA)
-    sock.on('data', data => console.log(`+++++++++\n${data}\n++++++++\n`))
-
   logger.log(`----- Starting Dispatcher api server...`)
   await api.startServer(port).catch(logger.error)
   logger.log(`----- Api server listening on ${host}:${port}`)
@@ -78,9 +75,10 @@ const run = async (db, sock) => {
 const listenForInboundMessages = async (db, sock, channels) => {
   const resendQueue = {}
   const numListening = await Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber)))
-  sock.on('data', inboundMsg =>
-    dispatch(db, sock, resendQueue, parseMessage(inboundMsg)).catch(logger.error),
-  )
+  sock.on('data', inboundMsg => {
+//    console.log(`+++++++++\n${inboundMsg}\n++++++++\n`)
+    dispatch(db, sock, resendQueue, parseMessage(inboundMsg)).catch(logger.error)
+  })
   return numListening
 }
 
@@ -89,6 +87,8 @@ const listenForInboundMessages = async (db, sock, channels) => {
  *******************/
 
 const dispatch = async (db, sock, resendQueue, inboundMsg) => {
+
+  metrics.signaldMessages.inc({ type: inboundMsg.type })
 
   // retrieve db info we need for dispatching...
   const [channel, sender] = _isMessage(inboundMsg)

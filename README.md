@@ -267,7 +267,7 @@ Now you should be able to start up Signalboost. We provide a few really simple `
 Run the app in dev mode with:
 
 ``` shell
-make dev.up
+UID=${UID} GID=${GID} make dev.up
 ```
 
 Assuming everything worked as expect so far you should see a log output as the docker containers start up and towards the end you should see something like `[Signalboost  xxxxxx] > Signalboost running!`.

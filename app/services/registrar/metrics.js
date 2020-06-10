@@ -1,12 +1,6 @@
-const prometheus = require('prom-client')
-
-const register = new prometheus.Registry()
-
-function collectDefaults() {
-  prometheus.collectDefaultMetrics({ register })    
-}
+const { prometheus, registry, register, collectDefaults } = require('../metrics_module')()
 
 module.exports = {
-  register,
+  registry,
   collectDefaults
 }
