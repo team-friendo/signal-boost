@@ -14,7 +14,10 @@ const { messagesIn } = require('./strings/messages')
 const { get, isEmpty, isNumber } = require('lodash')
 const {
   signal: { signupPhoneNumber },
-  dispatcher: { server: { host, port } }
+  dispatcher: {
+    server: { host, port },
+    logSignaldData
+  }
 } = require('../../config')
 
 /**
@@ -59,7 +62,7 @@ const run = async (db, sock) => {
   logger.log('--- Initializing Dispatcher....')
 
   logger.log('----- Starting collection of default prometheus metrics for Dispatcher service.')
-  metrics.collectDefaults()
+  metrics.collectDefaults()    
   
   logger.log(`----- Starting Dispatcher api server...`)
   await api.startServer(port).catch(logger.error)
@@ -76,7 +79,10 @@ const listenForInboundMessages = async (db, sock, channels) => {
   const resendQueue = {}
   const numListening = await Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber)))
   sock.on('data', inboundMsg => {
-//    console.log(`+++++++++\n${inboundMsg}\n++++++++\n`)
+
+    // for debugging in dev. note: logs users' phone numbers; only enable in config locally.
+    if (logSignaldData) console.log(inboundMsg)
+
     dispatch(db, sock, resendQueue, parseMessage(inboundMsg)).catch(logger.error)
   })
   return numListening
@@ -86,9 +92,37 @@ const listenForInboundMessages = async (db, sock, channels) => {
  * MESSAGE DISPATCH
  *******************/
 
+let _messagesInFlight = require('./messages_in_flight').empty()
+
+const _isMessageReceipt = (msg) => msg.type == 'message' && msg.data.isReceipt
+const _messageChannel = (msg) => msg.data.username
+const _messageSource = (msg) => msg.data.source
+
+/* 
+   A device number for a recipient phone number. 
+   One phone number can map to multiple devices running the signal app.
+*/
+const _messageSourceDevice = (msg) => msg.data.sourceDevice
+
+/* 
+   Only report 'lands' for sourceDevice 1, because one recipient phone number 
+   may have multiple signal devices, but we don't know about them, so we can never
+   know if the message reached all of them successfully.
+
+   Since we can't control that anyway, we just need to know if the message reached any of them.
+   Since every user presumably has a device '1', use that to classify the message as delivered.
+*/
+const isDeliveredMessageReceipt = (msg) =>
+  _isMessageReceipt(msg) && _messageSourceDevice(msg) == 1
+
 const dispatch = async (db, sock, resendQueue, inboundMsg) => {
 
   metrics.signaldMessages.inc({ type: inboundMsg.type })
+
+  if (isDeliveredMessageReceipt(inboundMsg)) {
+    _messagesInFlight.land(_messageChannel(inboundMsg),
+                           _messageSource(inboundMsg))
+  }
 
   // retrieve db info we need for dispatching...
   const [channel, sender] = _isMessage(inboundMsg)
@@ -132,7 +166,7 @@ const dispatch = async (db, sock, resendQueue, inboundMsg) => {
 const relay = async (db, sock, channel, sender, inboundMsg) => {
   const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
   try {
-    const dispatchable = { db, sock, channel, sender, sdMessage }
+    const dispatchable = { db, sock, channel, sender, sdMessage, _messagesInFlight }
     const commandResult = await executor.processCommand(dispatchable)
     return messenger.dispatch({ dispatchable, commandResult })
   } catch (e) {
@@ -147,16 +181,16 @@ const notifyRateLimitedMessage = async (db, sock, sdMessage, resendInterval) => 
 
   const recipients = channelRepository.getAdminMemberships(channel)
   return Promise.all(
-    recipients.map(({ memberPhoneNumber, language }) =>
-      signal.sendMessage(
+    recipients.map(({ memberPhoneNumber, language }) => 
+       signal.sendMessage(
         sock,
         memberPhoneNumber,
         sdMessageOf(
           { phoneNumber: signupPhoneNumber },
           messagesIn(language).notifications.rateLimitOccurred(sdMessage.username, resendInterval),
-        ),
-      ),
-    ),
+        )
+       )
+    )
   )
 }
 

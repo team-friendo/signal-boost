@@ -139,9 +139,16 @@ const handleCommandResult = async ({ commandResult, dispatchable }) => {
  ************/
 
 // Dispatchable -> Promise<MessageCount>
-const broadcast = async ({ db, sock, channel, sdMessage }) => {
+const broadcast = async ({ db, sock, channel, sdMessage, _messagesInFlight }) => {
   const recipients = channel.memberships
 
+  // keep track of number of msgs in flight
+  const recordSend = recipient => 
+    Promise.resolve(_messagesInFlight.launch(
+      channel.phoneNumber,
+      recipient.memberPhoneNumber
+    ))
+  
   try {
     if (isEmpty(sdMessage.attachments)) {
       await Promise.all(
@@ -156,14 +163,14 @@ const broadcast = async ({ db, sock, channel, sdMessage }) => {
               language: recipient.language,
               memberType: recipient.type,
             }),
-          ),
+          ).then(recordSend(recipient)),
         ),
       )
     } else {
       const recipientBatches = batchesOfN(recipients, broadcastBatchSize)
       await sequence(
         recipientBatches.map(recipientBatch => {
-          recipientBatch.map(recipient => {
+          recipientBatch.map(recipient => 
             signal.broadcastMessage(
               sock,
               [recipient.memberPhoneNumber],
@@ -174,8 +181,8 @@ const broadcast = async ({ db, sock, channel, sdMessage }) => {
                 language: recipient.language,
                 memberType: recipient.type,
               }),
-            )
-          })
+            ).then(recordSend(recipient))
+          )
         }),
         broadcastBatchInterval,
       )

@@ -23,6 +23,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
+      "description": "The number of messages per channel that signalboost has sent but not yet received receipt of from signald. Average in flight messages per second over the last hour.",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -38,7 +39,7 @@
         "y": 0
       },
       "hiddenSeries": false,
-      "id": 18,
+      "id": 20,
       "legend": {
         "avg": false,
         "current": false,
@@ -64,7 +65,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(signald_message_count[1h])  ",
+          "expr": "rate(channel_messages_in_flight[1h])",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -74,7 +75,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "signald_message_count (avg / sec over last 1h)",
+      "title": "channel_messages_in_flight: avg / sec over last 1h",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -239,7 +240,7 @@
         "y": 8
       },
       "hiddenSeries": false,
-      "id": 16,
+      "id": 18,
       "legend": {
         "avg": false,
         "current": false,
@@ -265,7 +266,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(channel_message_count[1h])",
+          "expr": "rate(signald_message_count[1h])  ",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -275,7 +276,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "channel_message_count (avg / sec over last 1h)",
+      "title": "signald_message_count (avg / sec over last 1h)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -417,8 +418,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
-      "description": "Time at 1.00 is time app is up.",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -428,13 +428,13 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
         "y": 16
       },
       "hiddenSeries": false,
-      "id": 2,
+      "id": 16,
       "legend": {
         "avg": false,
         "current": false,
@@ -460,7 +460,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "up",
+          "expr": "rate(channel_message_count[1h])",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -470,7 +470,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Uptime",
+      "title": "channel_message_count (avg / sec over last 1h)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -606,6 +606,101 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": "Prometheus",
+      "description": "Time at 1.00 is time app is up.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 2,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "up",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Uptime",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "datasource": null,
       "fieldConfig": {
         "defaults": {
@@ -619,7 +714,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 33
       },
       "hiddenSeries": false,
       "id": 14,
@@ -713,7 +808,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 33
+        "y": 41
       },
       "hiddenSeries": false,
       "id": 12,
@@ -790,6 +885,7 @@
       }
     }
   ],
+  "refresh": "5s",
   "schemaVersion": 25,
   "style": "dark",
   "tags": [],
@@ -816,5 +912,5 @@
   "timezone": "",
   "title": "Signalboost node app",
   "uid": "fV4wThmMk",
-  "version": 6
+  "version": 7
 }

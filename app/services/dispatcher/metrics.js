@@ -12,11 +12,18 @@ const channelMessages = new prometheus.Counter(register({
   labelNames: ['channel']
 }))
 
+const channelMessagesInFlight = new prometheus.Gauge(register({
+  name: 'channel_messages_in_flight',
+  help: 'The number of messages sent that have not yet reported receipt from signald.',
+  labelNames: ['channel']
+}))
+
 module.exports = {
   registry,  
   collectDefaults,
   signaldMessages,
-  channelMessages
+  channelMessages,
+  channelMessagesInFlight
 }
 
 

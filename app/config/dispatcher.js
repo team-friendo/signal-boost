@@ -6,7 +6,10 @@ const defaults = {
 }
 
 module.exports = {
-  development: defaults,
+  development: {
+    ...defaults,
+    logSignaldData: true
+  },
   test: defaults,
   production: defaults,
 }
