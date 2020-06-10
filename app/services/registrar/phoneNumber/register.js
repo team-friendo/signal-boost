@@ -61,25 +61,31 @@ const registerAllUnregistered = async ({ db, sock }) => {
 }
 
 // ({Database, Socket, string}) => Promise<PhoneNumberStatus>
-const register = ({ db, sock, phoneNumber }) =>
-  signal
-    .register(sock, phoneNumber)
-    .then(() => recordStatusChange(db, phoneNumber, pnStatuses.REGISTERED))
-    .then(() => signal.awaitVerificationResult(sock, phoneNumber))
-    .then(() => recordStatusChange(db, phoneNumber, pnStatuses.VERIFIED))
-    .catch(err => {
-      // TODO(@zig): add prometheus error count here (counter: signal_register_error)
-      logger.error(err)
-      return errorStatus(errors.registrationFailed(err), phoneNumber)
-    })
+const register = async ({ db, phoneNumber }) => {
+  try {
+    const sock = signal.pool.acquire()
+    await signal.register(sock, phoneNumber)
+    await recordStatusChange(db, phoneNumber, pnStatuses.REGISTERED)
+    await signal.awaitVerificationResult(sock, phoneNumber)
+    return recordStatusChange(db, phoneNumber, pnStatuses.VERIFIED)
+  } catch (err) {
+    logger.error(err)
+    return errorStatus(errors.registrationFailed(err), phoneNumber)
+  }
+}
 
 // ({Emitter, string, string}) => Promise<SignalboostStatus>
-const verify = ({ sock, phoneNumber, verificationCode }) =>
-  signal
-    .verify(sock, phoneNumber, verificationCode)
-    .then(() => signal.awaitVerificationResult(sock, phoneNumber))
-    .then(() => ({ status: statuses.SUCCESS, message: 'OK' }))
-    .catch(e => ({ status: statuses.ERROR, message: e.message }))
+const verify = async ({ phoneNumber, verificationCode }) => {
+  try {
+    const sock = await signal.pool.acquire()
+    await signal.verify(sock, phoneNumber, verificationCode)
+    await signal.awaitVerificationResult(sock, phoneNumber)
+    return { status: statuses.SUCCESS, message: 'OK' }
+  } catch (err) {
+    logger.error(err)
+    return { status: statuses.ERROR, message: err.message }
+  }
+}
 
 /********************
  * HELPER FUNCTIONS
