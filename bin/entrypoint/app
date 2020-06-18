@@ -20,5 +20,5 @@ if [[ "$NODE_ENV" = "development" ]];then
   cd /signalboost
   npx nodemon app
 else
-  node /signalboost/app
+  node /signalboost/app/run
 fi

@@ -66,7 +66,12 @@ describe('dispatcher service', () => {
 
   beforeEach(async () => {
     // initialization stubs --v
-
+    
+    sinon.stub(app, 'initialize', () => {
+      app.db = {}
+      app.sock = new EventEmitter()
+    })
+    
     sinon.stub(channelRepository, 'findAllDeep').returns(Promise.resolve(channels))
     sinon.stub(signal, 'subscribe').returns(Promise.resolve())
 
@@ -103,8 +108,9 @@ describe('dispatcher service', () => {
     logAndReturnSpy = sinon.spy(logger, 'logAndReturn')
     logErrorSpy = sinon.spy(logger, 'error')
     // onReceivedMessage stubs --^
-
-    await run(db, sock)
+    
+    await app.initialize()
+    await run()
   })
 
   afterEach(() => {
