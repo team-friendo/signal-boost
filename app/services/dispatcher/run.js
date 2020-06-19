@@ -1,6 +1,6 @@
 const signal = require('../signal')
 const { sdMessageOf, messageTypes } = signal
-const channelRepository = require('./../../db/repositories/channel')
+const channelRepository = require('../../db/repositories/channel')
 const membershipRepository = require('../../db/repositories/membership')
 const { memberTypes } = membershipRepository
 const executor = require('./commands')
@@ -10,7 +10,7 @@ const logger = require('./logger')
 const safetyNumberService = require('../registrar/safetyNumbers')
 const { messagesIn } = require('./strings/messages')
 const { get, isEmpty, isNumber } = require('lodash')
-const { sock, db } = require('../../../app')
+const app = require('../../../app')
 const {
   signal: { supportPhoneNumber },
 } = require('../../config')
@@ -53,7 +53,7 @@ const {
  *INITIALIZATION
  *****************/
 
-const run = async (db, sock) => {
+const run = async () => {
   logger.log('--- Initializing Dispatcher....')
 
   // TODO: log this or not based on env var value
@@ -62,9 +62,13 @@ const run = async (db, sock) => {
   logger.log(`----- Subscribing to channels...`)
 
   const resendQueue = {}
-  const channels = await channelRepository.findAllDeep(db).catch(logger.fatalError)
-  const numListening = await Promise.all(channels.map(ch => signal.subscribe(sock, ch.phoneNumber)))
-  sock.on('data', inboundMsg => dispatch(resendQueue, parseMessage(inboundMsg)).catch(logger.error))
+  const channels = await channelRepository.findAllDeep(app.db).catch(logger.fatalError)
+  const numListening = await Promise.all(
+    channels.map(ch => signal.subscribe(app.sock, ch.phoneNumber)),
+  )
+  app.sock.on('data', inboundMsg =>
+    dispatch(resendQueue, parseMessage(inboundMsg)).catch(logger.error),
+  )
 
   logger.log(`----- Subscribed to ${numListening.length} of ${channels.length} channels!`)
   logger.log(`--- Dispatcher running!`)
@@ -78,7 +82,7 @@ const dispatch = async (resendQueue, inboundMsg) => {
   // retrieve db info we need for dispatching...
   const [channel, sender] = _isMessage(inboundMsg)
     ? await Promise.all([
-        channelRepository.findDeep(db, inboundMsg.data.username),
+        channelRepository.findDeep(app.db, inboundMsg.data.username),
         classifyPhoneNumber(inboundMsg.data.username, inboundMsg.data.source),
       ])
     : []
@@ -86,8 +90,8 @@ const dispatch = async (resendQueue, inboundMsg) => {
   // dispatch system-created messages
   const rateLimitedMessage = detectRateLimitedMessage(inboundMsg, resendQueue)
   if (rateLimitedMessage) {
-    const resendInterval = resend.enqueueResend(sock, resendQueue, rateLimitedMessage)
-    return notifyRateLimitedMessage(db, sock, rateLimitedMessage, resendInterval)
+    const resendInterval = resend.enqueueResend(app.sock, resendQueue, rateLimitedMessage)
+    return notifyRateLimitedMessage(rateLimitedMessage, resendInterval)
   }
 
   const newFingerprint = detectUpdatableFingerprint(inboundMsg)
@@ -113,7 +117,7 @@ const dispatch = async (resendQueue, inboundMsg) => {
 const relay = async (channel, sender, inboundMsg) => {
   const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
   try {
-    const dispatchable = { db, sock, channel, sender, sdMessage }
+    const dispatchable = { db: app.db, sock: app.sock, channel, sender, sdMessage }
     const commandResult = await executor.processCommand(dispatchable)
     return messenger.dispatch({ dispatchable, commandResult })
   } catch (e) {
@@ -123,14 +127,14 @@ const relay = async (channel, sender, inboundMsg) => {
 
 // (Database, Socket, SdMessage, number) -> Promise<void>
 const notifyRateLimitedMessage = async (sdMessage, resendInterval) => {
-  const channel = await channelRepository.findDeep(db, supportPhoneNumber)
+  const channel = await channelRepository.findDeep(app.db, supportPhoneNumber)
   if (!channel) return Promise.resolve()
 
   const recipients = channelRepository.getAdminMemberships(channel)
   return Promise.all(
     recipients.map(({ memberPhoneNumber, language }) =>
       signal.sendMessage(
-        sock,
+        app.sock,
         memberPhoneNumber,
         sdMessageOf(
           { phoneNumber: supportPhoneNumber },
@@ -141,19 +145,19 @@ const notifyRateLimitedMessage = async (sdMessage, resendInterval) => {
   )
 }
 
-const updateFingerprint = async (updatableFingerprint) => {
+const updateFingerprint = async updatableFingerprint => {
   const { channelPhoneNumber, memberPhoneNumber } = updatableFingerprint
   try {
     const recipient = await classifyPhoneNumber(channelPhoneNumber, memberPhoneNumber)
     if (recipient.type === memberTypes.NONE) return Promise.resolve()
     if (recipient.type === memberTypes.ADMIN) {
       return safetyNumberService
-        .deauthorize(db, sock, updatableFingerprint)
+        .deauthorize(app.db, app.sock, updatableFingerprint)
         .then(logger.logAndReturn)
         .catch(logger.error)
     }
     return safetyNumberService
-      .trustAndResend(db, sock, updatableFingerprint)
+      .trustAndResend(app.db, app.sock, updatableFingerprint)
       .then(logger.logAndReturn)
       .catch(logger.error)
   } catch (e) {
@@ -169,19 +173,24 @@ const updateExpiryTime = async (sender, channel, messageExpiryTime) => {
     case memberTypes.SUBSCRIBER:
       // override a disappearing message time set by a subscriber or rando
       return signal.setExpiration(
-        sock,
+        app.sock,
         channel.phoneNumber,
         sender.phoneNumber,
         channel.messageExpiryTime,
       )
     case memberTypes.ADMIN:
       // enforce a disappearing message time set by an admin
-      await channelRepository.update(db, channel.phoneNumber, { messageExpiryTime })
+      await channelRepository.update(app.db, channel.phoneNumber, { messageExpiryTime })
       return Promise.all(
         channel.memberships
           .filter(m => m.memberPhoneNumber !== sender.phoneNumber)
           .map(m =>
-            signal.setExpiration(sock, channel.phoneNumber, m.memberPhoneNumber, messageExpiryTime),
+            signal.setExpiration(
+              app.sock,
+              channel.phoneNumber,
+              m.memberPhoneNumber,
+              messageExpiryTime,
+            ),
           ),
       )
   }
@@ -247,12 +256,12 @@ const detectUpdatableExpiryTime = (inboundMsg, channel) =>
 const classifyPhoneNumber = async (channelPhoneNumber, senderPhoneNumber) => {
   // TODO(aguestuser|2019-12-02): do this with one db query!
   const type = await membershipRepository.resolveMemberType(
-    db,
+    app.db,
     channelPhoneNumber,
     senderPhoneNumber,
   )
   const language = await membershipRepository.resolveSenderLanguage(
-    db,
+    app.db,
     channelPhoneNumber,
     senderPhoneNumber,
     type,
