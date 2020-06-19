@@ -1,9 +1,11 @@
 import { expect } from 'chai'
 import { describe, it, before, beforeEach, afterEach, after } from 'mocha'
 import { pick } from 'lodash'
-import { initDb } from '../../../../app/db/index'
 import { genPhoneNumber, phoneNumberFactory } from '../../../support/factories/phoneNumber'
 import phoneNumberRepository from '../../../../app/db/repositories/phoneNumber'
+import app from '../../../../app'
+import testApp from '../../../support/testApp'
+import dbService from '../../../../app/db'
 
 describe('phone number repository', () => {
   const {
@@ -11,9 +13,11 @@ describe('phone number repository', () => {
   } = phoneNumberRepository
   let db
 
-  before(() => (db = initDb()))
+  before(async () => {
+    db = (await app.run({ ...testApp, db: dbService })).db
+  })
   afterEach(async () => await db.phoneNumber.destroy({ where: {} }))
-  after(async () => await db.sequelize.close())
+  after(async () => await app.stop())
 
   describe('#update', () => {
     let phoneNumber

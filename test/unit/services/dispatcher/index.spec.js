@@ -109,7 +109,7 @@ describe('dispatcher service', () => {
 
     await app.run({
       ...testApp,
-      sock: { getSocket: () => Promise.resolve(new EventEmitter().setMaxListeners(30)) },
+      sock: { run: () => Promise.resolve(new EventEmitter().setMaxListeners(30)) },
       dispatcher,
     })
   })

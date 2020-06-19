@@ -4,8 +4,11 @@ import moment from 'moment'
 import { genPhoneNumber } from '../../../support/factories/phoneNumber'
 import { hotlineMessageFactory } from '../../../support/factories/hotlineMessages'
 import { channelFactory } from '../../../support/factories/channel'
-import { initDb } from '../../../../app/db'
+import { run } from '../../../../app/db'
 import hotlineMessageRepository from '../../../../app/db/repositories/hotlineMessage'
+import app from '../../../../app'
+import testApp from '../../../support/testApp'
+import dbService from '../../../../app/db'
 const {
   job: { hotlineMessageExpiryInMillis },
 } = require('../../../../app/config')
@@ -15,7 +18,7 @@ describe('hotlineMessage repository', () => {
   let db, channelPhoneNumber, hotlineMessage
 
   before(async () => {
-    db = initDb()
+    db = (await app.run({ ...testApp, db: dbService })).db
     channelPhoneNumber = (await db.channel.create(channelFactory())).phoneNumber
   })
 
@@ -23,7 +26,7 @@ describe('hotlineMessage repository', () => {
 
   after(async () => {
     await db.channel.destroy({ where: {}, force: true })
-    db.sequelize.close()
+    await app.stop()
   })
 
   describe('#getMessageId', () => {

@@ -1,10 +1,13 @@
 import { expect } from 'chai'
 import { describe, it, before, beforeEach, after, afterEach } from 'mocha'
-const moment = require('moment')
-import { initDb } from '../../../../app/db/index'
+import moment from 'moment'
+import { run } from '../../../../app/db/index'
 import { genPhoneNumber } from '../../../support/factories/phoneNumber'
 import smsSenderRepository from '../../../../app/db/repositories/smsSender'
 import { smsSenderFactory } from '../../../support/factories/smsSender'
+import app from '../../../../app'
+import testApp from '../../../support/testApp'
+import dbService from '../../../../app/db'
 const {
   twilio: { smsQuotaAmount, smsQuotaDurationInMillis },
 } = require('../../../../app/config')
@@ -13,9 +16,11 @@ describe('smsSender repository', () => {
   const phoneNumber = genPhoneNumber()
 
   let db
-  before(() => (db = initDb()))
+  before(async () => {
+    db = (await app.run({ ...testApp, db: dbService })).db
+  })
   afterEach(() => db.smsSender.destroy({ where: {}, force: true }))
-  after(() => db.sequelize.close())
+  after(async () => await app.stop())
 
   describe('#countMessage', () => {
     describe('when a sender has not sent any messages yet', () => {

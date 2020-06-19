@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { describe, it, before, beforeEach, after, afterEach } from 'mocha'
 import { genPhoneNumber } from '../../../support/factories/phoneNumber'
 import { times } from 'lodash'
-import { initDb } from '../../../../app/db'
+import { run } from '../../../../app/db'
 import { channelFactory } from '../../../support/factories/channel'
 import {
   adminMembershipFactory,
@@ -25,7 +25,7 @@ describe('invite repository', () => {
   ] = times(5, genPhoneNumber)
   let res, db, inviteCount, memberCount
 
-  before(() => (db = initDb()))
+  before(() => (db = run()))
   beforeEach(async () => {
     await db.channel.create(
       channelFactory({

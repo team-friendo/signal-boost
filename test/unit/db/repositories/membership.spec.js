@@ -4,13 +4,15 @@ import { omit, pick } from 'lodash'
 import { genPhoneNumber } from '../../../support/factories/phoneNumber'
 import { channelFactory } from '../../../support/factories/channel'
 import membershipRepository from '../../../../app/db/repositories/membership'
-import { initDb } from '../../../../app/db'
 import { languages } from '../../../../app/services/language'
 import {
   adminMembershipFactory,
   membershipFactory,
   subscriberMembershipFactory,
 } from '../../../support/factories/membership'
+import app from '../../../../app'
+import testApp from '../../../support/testApp'
+import dbService from '../../../../app/db'
 const { memberTypes } = membershipRepository
 const { defaultLanguage } = require('../../../../app/config')
 
@@ -20,7 +22,9 @@ describe('membership repository', () => {
   const adminPhoneNumbers = [genPhoneNumber(), genPhoneNumber()]
   let db, channel, sub, membershipCount, subCount, adminCount, admins
 
-  before(() => (db = initDb()))
+  before(async () => {
+    db = (await app.run({ ...testApp, db: dbService })).db
+  })
   afterEach(async () => {
     await Promise.all([
       db.channel.destroy({ where: {}, force: true }),
@@ -28,7 +32,7 @@ describe('membership repository', () => {
       db.messageCount.destroy({ where: {}, force: true }),
     ])
   })
-  after(async () => await db.sequelize.close())
+  after(async () => await app.stop())
 
   describe('#addAdmin', () => {
     describe('when given the phone number of an existing channel and a new admin', () => {

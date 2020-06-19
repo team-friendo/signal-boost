@@ -1,23 +1,28 @@
 import { expect } from 'chai'
 import { describe, it, before, beforeEach, afterEach, after } from 'mocha'
-import { initDb } from '../../../../app/db/index'
+import { run } from '../../../../app/db/index'
 import { messageCountFactory } from '../../../support/factories/messageCount'
 import messageCountRepository from '../../../../app/db/repositories/messageCount'
 import { deepChannelFactory } from '../../../support/factories/channel'
 import { getAdminMemberships } from '../../../../app/db/repositories/channel'
+import app from '../../../../app'
+import testApp from '../../../support/testApp'
+import dbService from '../../../../app/db'
 
 describe('message count repository', () => {
   const channel = deepChannelFactory()
   const channelPhoneNumber = channel.phoneNumber
   let db, countBefore, countAfter
 
-  before(() => (db = initDb()))
+  before(async () => {
+    db = (await app.run({ ...testApp, db: dbService })).db
+  })
   afterEach(() => {
     db.messageCount.destroy({ where: {} })
     db.membership.destroy({ where: {} })
     db.channel.destroy({ where: {} })
   })
-  after(async () => await db.sequelize.close())
+  after(async () => await app.stop())
 
   describe('#countBroadcast', () => {
     beforeEach(async () => {

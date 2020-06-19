@@ -33,7 +33,9 @@ const run = async () => {
 
   await getDbConnection(sequelize)
 
-  return { ...db, sequelize, Sequelize }
+  const stop = () => sequelize.close()
+
+  return { ...db, stop, sequelize, Sequelize }
 }
 
 // (Database, number) => Promise<string>
@@ -49,4 +51,9 @@ const getDbConnection = (sequelize, attempts = 0) =>
           ),
     )
 
-module.exports = { run, getDbConnection }
+const stop = db => {
+  console.log('!!!!!!!!!!!!!!!')
+  db.sequelize.close()
+}
+
+module.exports = { run, stop, getDbConnection }
