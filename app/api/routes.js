@@ -6,6 +6,7 @@ const signal = require('../signal')
 const {
   twilio: { smsEndpoint },
 } = require('../config')
+const { registry } = require('../metrics')
 
 const routesOf = async router => {
   router.get('/hello', async ctx => {
@@ -15,6 +16,10 @@ const routesOf = async router => {
   router.get('/healthcheck', async ctx => {
     const result = await signal.isAlive()
     merge(ctx, { status: httpStatusOf(get(result, 'status')) })
+  })
+
+  router.get('/metrics', async ctx => {
+    ctx.body = registry.metrics()
   })
 
   router.get('/channels', async ctx => {
