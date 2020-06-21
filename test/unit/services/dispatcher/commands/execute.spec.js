@@ -299,7 +299,7 @@ describe('executing commands', () => {
 
         describe('when new admin has been previously deauthorized', () => {
           const sdMessage = sdMessageOf(channel, `ADD ${deauthorizedPhoneNumber}`)
-          const dispatchable = {  channel, sender, sdMessage }
+          const dispatchable = { channel, sender, sdMessage }
 
           it("attempts to trust the admin's new fingerprint", async () => {
             await processCommand(dispatchable).catch()
@@ -343,7 +343,7 @@ describe('executing commands', () => {
       })
 
       describe('when payload is not a valid phone number', async () => {
-        const dispatchable = {  channel, sender, sdMessage: sdMessageOf(channel, 'ADD foo') }
+        const dispatchable = { channel, sender, sdMessage: sdMessageOf(channel, 'ADD foo') }
         let result
         beforeEach(async () => (result = await processCommand(dispatchable)))
 
@@ -365,7 +365,6 @@ describe('executing commands', () => {
 
     describe('when sender is not an admin', () => {
       const dispatchable = {
-        
         channel,
         sender: subscriber,
         sdMessage: sdMessageOf(channel, `ADD ${newAdminPhoneNumber}`),
@@ -391,7 +390,6 @@ describe('executing commands', () => {
 
   describe('DECLINE command', () => {
     const dispatchable = {
-      
       channel,
       sender: randomPerson,
       sdMessage: sdMessageOf(channel, 'DECLINE'),
@@ -444,7 +442,7 @@ describe('executing commands', () => {
   })
 
   describe('DESTROY command', () => {
-    const _dispatchable = {  channel, sdMessage: sdMessageOf(channel, 'DESTROY') }
+    const _dispatchable = { channel, sdMessage: sdMessageOf(channel, 'DESTROY') }
 
     describe('when issuer is an admin', () => {
       const dispatchable = { ..._dispatchable, sender: admin }
@@ -479,7 +477,6 @@ describe('executing commands', () => {
 
   describe('DESTROY_CONFIRM command', () => {
     const _dispatchable = {
-      
       channel,
       sdMessage: sdMessageOf(channel, 'CONFIRM DESTROY'),
     }
@@ -561,7 +558,7 @@ describe('executing commands', () => {
     const sdMessage = sdMessageOf(channel, 'HELP')
 
     describe('when sender is an admin', () => {
-      const dispatchable = {  channel, sender: admin, sdMessage }
+      const dispatchable = { channel, sender: admin, sdMessage }
 
       it('sends a help message to sender', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -575,7 +572,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is a subscriber', () => {
-      const dispatchable = {  channel, sender: subscriber, sdMessage }
+      const dispatchable = { channel, sender: subscriber, sdMessage }
 
       it('sends a help message to sender', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -589,7 +586,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is a random person', () => {
-      const dispatchable = {  channel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel, sender: randomPerson, sdMessage }
 
       it('sends a subscriber help message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -605,7 +602,6 @@ describe('executing commands', () => {
     describe('when followed by a payload', () => {
       it('returns a NOOP', async () => {
         const dispatchable = {
-          
           channel,
           sender: randomPerson,
           sdMessage: sdMessageOf(channel, 'help me find the march'),
@@ -625,7 +621,7 @@ describe('executing commands', () => {
     const sdMessage = sdMessageOf(channel, 'INFO')
 
     describe('when sender is an admin', () => {
-      const dispatchable = {  channel, sender: admin, sdMessage }
+      const dispatchable = { channel, sender: admin, sdMessage }
 
       it('sends an info message with more information', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -639,7 +635,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is a subscriber', () => {
-      const dispatchable = {  channel, sender: subscriber, sdMessage }
+      const dispatchable = { channel, sender: subscriber, sdMessage }
 
       it('sends an info message with less information', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -653,7 +649,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is neither admin nor subscriber', () => {
-      const dispatchable = {  channel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel, sender: randomPerson, sdMessage }
 
       it('sends a subscriber info message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -669,7 +665,6 @@ describe('executing commands', () => {
     describe('when followed by a payload', () => {
       it('returns a NOOP', async () => {
         const dispatchable = {
-          
           channel,
           sender: randomPerson,
           sdMessage: sdMessageOf(channel, 'info wars did it'),
@@ -705,7 +700,7 @@ describe('executing commands', () => {
       const vouchingChannel = { ...channel, vouchingOn: true, vouchLevel: 1 }
 
       describe('when sender is not a member of channel', () => {
-        const dispatchable = {  sdMessage, channel: vouchingChannel, sender: randomPerson }
+        const dispatchable = { sdMessage, channel: vouchingChannel, sender: randomPerson }
 
         it('returns UNAUTHORIZED', async () => {
           expect(await processCommand(dispatchable)).to.eql({
@@ -721,7 +716,6 @@ describe('executing commands', () => {
       describe('when sender is an admin', () => {
         describe('when at least one invitee phone number is invalid', () => {
           const dispatchable = {
-            
             sdMessage: sdMessageOf(channel, `INVITE foo, ${inviteePhoneNumbers[0]}`),
             channel: vouchingChannel,
             sender: admin,
@@ -739,7 +733,7 @@ describe('executing commands', () => {
         })
 
         describe('when all invitee numbers are valid (and unique)', () => {
-          const dispatchable = {  sdMessage, channel: vouchingChannel, sender: admin }
+          const dispatchable = { sdMessage, channel: vouchingChannel, sender: admin }
 
           describe('when all invitees are already subscribers', () => {
             let res
@@ -865,7 +859,6 @@ describe('executing commands', () => {
             )}`,
           }
           const dispatchable = {
-            
             sdMessage: _sdMessage,
             channel: vouchingChannel,
             sender: admin,
@@ -912,7 +905,6 @@ describe('executing commands', () => {
           // sender's language is English but they're issuing an invite in Spanish
 
           const dispatchable = {
-            
             sdMessage: sdMessageOf(channel, `INVITAR ${inviteePhoneNumbers[0]}`),
             channel: vouchingChannel,
             sender: admin,
@@ -944,7 +936,7 @@ describe('executing commands', () => {
       })
 
       describe('when sender is a subscriber on happy path', () => {
-        const dispatchable = {  sdMessage, channel: vouchingChannel, sender: subscriber }
+        const dispatchable = { sdMessage, channel: vouchingChannel, sender: subscriber }
         let res
         beforeEach(async () => {
           issueInviteStub.returns(Promise.resolve(true))
@@ -984,7 +976,7 @@ describe('executing commands', () => {
     describe('when vouching mode is on and set to greater than 1', () => {
       describe('sender is an admin and invitees are not yet subscribers or invited', () => {
         const extraVouchedChannel = { ...channel, vouchingOn: true, vouchLevel: 2 }
-        const dispatchable = {  sdMessage, channel: extraVouchedChannel, sender: admin }
+        const dispatchable = { sdMessage, channel: extraVouchedChannel, sender: admin }
         let res
         beforeEach(async () => {
           issueInviteStub.returns(Promise.resolve(true))
@@ -1018,7 +1010,7 @@ describe('executing commands', () => {
     })
 
     describe('when vouching mode is off', () => {
-      const dispatchable = {  channel, sender: admin, sdMessage }
+      const dispatchable = { channel, sender: admin, sdMessage }
 
       it('has same behavior as vouching on', async () => {
         issueInviteStub.returns(Promise.resolve(true))
@@ -1051,7 +1043,7 @@ describe('executing commands', () => {
 
     describe('when vouching mode is on', () => {
       const vouchedChannel = { ...channel, vouchingOn: true }
-      const dispatchable = {  channel: vouchedChannel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel: vouchedChannel, sender: randomPerson, sdMessage }
 
       it('responds with an ERROR', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -1066,7 +1058,7 @@ describe('executing commands', () => {
 
     describe('when vouching mode is off', () => {
       describe('when number is not subscribed to channel', () => {
-        const dispatchable = {  channel, sender: randomPerson, sdMessage }
+        const dispatchable = { channel, sender: randomPerson, sdMessage }
 
         describe('in all cases', () => {
           beforeEach(() => addSubscriberStub.returns(Promise.resolve()))
@@ -1111,7 +1103,7 @@ describe('executing commands', () => {
       })
 
       describe('when number is subscribed to channel', () => {
-        const dispatchable = {  channel, sender: subscriber, sdMessage }
+        const dispatchable = { channel, sender: subscriber, sdMessage }
         let result
         beforeEach(async () => (result = await processCommand(dispatchable)))
 
@@ -1131,7 +1123,7 @@ describe('executing commands', () => {
       })
 
       describe('when number belongs to a channel admin', () => {
-        const dispatchable = {  channel, sender: admin, sdMessage }
+        const dispatchable = { channel, sender: admin, sdMessage }
         let result
         beforeEach(async () => (result = await processCommand(dispatchable)))
 
@@ -1154,7 +1146,6 @@ describe('executing commands', () => {
     describe('when followed by a payload', () => {
       it('returns a NOOP', async () => {
         const dispatchable = {
-          
           channel,
           sender: randomPerson,
           sdMessage: sdMessageOf(channel, 'join us tomorrow!'),
@@ -1177,7 +1168,7 @@ describe('executing commands', () => {
     afterEach(() => sinon.restore())
 
     describe('when sender is subscribed to channel', () => {
-      const dispatchable = {  channel, sender: subscriber, sdMessage }
+      const dispatchable = { channel, sender: subscriber, sdMessage }
       beforeEach(() => removeMemberStub.returns(Promise.resolve()))
 
       it('attempts to remove subscriber', async () => {
@@ -1218,7 +1209,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is not subscribed to channel', () => {
-      const dispatchable = {  channel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel, sender: randomPerson, sdMessage }
       let result
       beforeEach(async () => (result = await processCommand(dispatchable)))
 
@@ -1240,7 +1231,7 @@ describe('executing commands', () => {
     describe('when sender is an admin', () => {
       const sender = admin
       let result
-      const dispatchable = {  channel, sender, sdMessage }
+      const dispatchable = { channel, sender, sdMessage }
 
       beforeEach(async () => {
         removeMemberStub.returns(Promise.resolve([1, 1]))
@@ -1248,10 +1239,7 @@ describe('executing commands', () => {
       })
 
       it('removes sender as admin of channel', async () => {
-        expect(removeMemberStub.getCall(0).args).to.eql([
-          channel.phoneNumber,
-          sender.phoneNumber,
-        ])
+        expect(removeMemberStub.getCall(0).args).to.eql([channel.phoneNumber, sender.phoneNumber])
       })
 
       it('returns SUCCESS status, message, and notifications', () => {
@@ -1333,7 +1321,7 @@ describe('executing commands', () => {
           .sort()
         const sendMessageNumbers = sendMessageStub
           .getCalls()
-          .map(call => call.args[1])
+          .map(call => call.args[0])
           .sort()
         expect(sendMessageNumbers).to.eql(bystanderPhoneNumbers)
       })
@@ -1434,7 +1422,6 @@ describe('executing commands', () => {
           it('attempts to remove them', async () => {
             await processCommand(dispatchable)
             expect(removeMemberStub.getCall(0).args).to.eql([
-              
               channel.phoneNumber,
               removalTargetNumber,
             ])
@@ -1488,7 +1475,7 @@ describe('executing commands', () => {
 
       describe('when payload is not a valid phone number', async () => {
         const sdMessage = sdMessageOf(channel, 'REMOVE foo')
-        const dispatchable = {  channel, sender, sdMessage }
+        const dispatchable = { channel, sender, sdMessage }
         let result
         beforeEach(async () => (result = await processCommand(dispatchable)))
 
@@ -1510,7 +1497,7 @@ describe('executing commands', () => {
 
     describe('when sender is not an admin', () => {
       const sdMessage = sdMessageOf(channel, `REMOVE ${removalTargetNumber}`)
-      const dispatchable = {  channel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel, sender: randomPerson, sdMessage }
       let result
 
       beforeEach(async () => (result = await processCommand(dispatchable)))
@@ -1539,7 +1526,7 @@ describe('executing commands', () => {
 
     describe('when sender is an admin', () => {
       const sender = admin
-      const dispatchable = {  channel, sender, sdMessage }
+      const dispatchable = { channel, sender, sdMessage }
       let result
 
       describe('when renaming succeeds', () => {
@@ -1586,7 +1573,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is a subscriber', () => {
-      const dispatchable = {  channel, sender: subscriber, sdMessage }
+      const dispatchable = { channel, sender: subscriber, sdMessage }
 
       it('returns UNAUTHORIZED status / message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -1600,7 +1587,7 @@ describe('executing commands', () => {
     })
 
     describe('when sender is a random person', () => {
-      const dispatchable = {  channel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel, sender: randomPerson, sdMessage }
 
       it('returns UNAUTHORIZED status / message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -1618,7 +1605,6 @@ describe('executing commands', () => {
     const messageId = 1312
     const crFR = messagesIn(languages.FR).commandResponses
     const dispatchable = {
-      
       channel,
       sender: { ...admin, language: languages.FR },
       sdMessage: sdMessageOf(channel, 'REPLY #1312 foo'),
@@ -1721,7 +1707,6 @@ describe('executing commands', () => {
 
   describe('SET_LANGUAGE commands', () => {
     const dispatchable = {
-      
       channel,
       sender: subscriber,
       sdMessage: sdMessageOf(channel, 'francais'),
@@ -1766,7 +1751,6 @@ describe('executing commands', () => {
     describe('when followed by a payload', () => {
       it('returns a NOOP', async () => {
         const dispatchable = {
-          
           channel,
           sender: randomPerson,
           sdMessage: sdMessageOf(channel, 'english muffins are ready!'),
@@ -1819,13 +1803,12 @@ describe('executing commands', () => {
         const sender = admin
 
         const sdMessage = sdMessageOf(channel, commandStr)
-        const dispatchable = {  channel, sender, sdMessage }
+        const dispatchable = { channel, sender, sdMessage }
 
         it('attempts to update the toggle field on the channel db record', async () => {
           updateChannelStub.returns(Promise.resolve())
           await processCommand(dispatchable)
           expect(updateChannelStub.getCall(0).args).to.have.deep.members([
-            
             channel.phoneNumber,
             { [dbField]: isOn },
           ])
@@ -1872,7 +1855,7 @@ describe('executing commands', () => {
       describe('when sender is a subscriber', () => {
         const sender = subscriber
         const sdMessage = sdMessageOf(channel, commandStr)
-        const dispatchable = {  channel, sender, sdMessage }
+        const dispatchable = { channel, sender, sdMessage }
 
         it('returns an UNAUTHORIZED status', async () => {
           expect(await processCommand(dispatchable)).to.eql({
@@ -1888,7 +1871,7 @@ describe('executing commands', () => {
       describe('when sender is a random person', () => {
         const sender = randomPerson
         const sdMessage = sdMessageOf(channel, commandStr)
-        const dispatchable = {  channel, sender, sdMessage }
+        const dispatchable = { channel, sender, sdMessage }
 
         it('returns an UNAUTHORIZED status', async () => {
           expect(await processCommand(dispatchable)).to.eql({
@@ -1905,7 +1888,6 @@ describe('executing commands', () => {
     describe('when toggle is followed by a payload', () => {
       scenarios.forEach(({ commandStr }) => {
         const dispatchable = {
-          
           channel,
           sender: admin,
           sdMessage: sdMessageOf(channel, `${commandStr} foo`),
@@ -1937,7 +1919,7 @@ describe('executing commands', () => {
 
       describe('when sender sets a valid vouch level', () => {
         const sdMessage = sdMessageOf(channel, `VOUCH LEVEL ${validVouchLevel}`)
-        const dispatchable = {  channel, sender, sdMessage }
+        const dispatchable = { channel, sender, sdMessage }
 
         describe('when updating the db succeeds', () => {
           beforeEach(async () => {
@@ -1982,7 +1964,7 @@ describe('executing commands', () => {
 
       describe('when sender sets an invalid vouch level', () => {
         const sdMessage = sdMessageOf(channel, `VOUCH LEVEL ${invalidVouchLevel}`)
-        const dispatchable = {  channel, sender, sdMessage }
+        const dispatchable = { channel, sender, sdMessage }
 
         beforeEach(async () => {
           updateStub.returns(Promise.resolve({ ...channel, vouchLevel: invalidVouchLevel }))
@@ -2007,7 +1989,7 @@ describe('executing commands', () => {
       const sender = randomPerson
 
       const sdMessage = sdMessageOf(channel, `VOUCH LEVEL ${validVouchLevel}`)
-      const dispatchable = {  channel, sender, sdMessage }
+      const dispatchable = { channel, sender, sdMessage }
 
       it('returns an UNAUTHORIZED status/message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -2028,7 +2010,7 @@ describe('executing commands', () => {
     afterEach(() => sinon.restore())
 
     describe('when sender is an admin', () => {
-      const dispatchable = {  channel, sender: admin, sdMessage }
+      const dispatchable = { channel, sender: admin, sdMessage }
       let result
 
       describe('when update of descriptions succeeds', () => {
@@ -2075,7 +2057,7 @@ describe('executing commands', () => {
       })
     })
     describe('when sender is a subscriber', () => {
-      const dispatchable = {  channel, sender: subscriber, sdMessage }
+      const dispatchable = { channel, sender: subscriber, sdMessage }
 
       it('returns UNAUTHORIZED status / message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -2088,7 +2070,7 @@ describe('executing commands', () => {
       })
     })
     describe('when sender is a random person', () => {
-      const dispatchable = {  channel, sender: randomPerson, sdMessage }
+      const dispatchable = { channel, sender: randomPerson, sdMessage }
 
       it('returns UNAUTHORIZED status / message', async () => {
         expect(await processCommand(dispatchable)).to.eql({
@@ -2105,7 +2087,6 @@ describe('executing commands', () => {
   describe('invalid command', () => {
     it('returns NOOP status/message', async () => {
       const dispatchable = {
-        
         channel,
         sender: admin,
         sdMessage: sdMessageOf(channel, 'foo'),
