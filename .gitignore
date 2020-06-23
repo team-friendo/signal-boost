@@ -55,4 +55,4 @@ grafana_data
 /ansible/files/deploy_keys/.ssh/known_hosts
 /.env.dev
 /.env.pentest
-/.env.metrics
+/.env.metrics/conf/grafana/config/grafana.ini

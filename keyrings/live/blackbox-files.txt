@@ -9,5 +9,6 @@ ansible/files/deploy_keys/.ssh/known_hosts
 ansible/files/deploy_keys/signalboost_gpg_privkey.asc
 ansible/inventory.tmpl
 bin/get-machine
+conf/grafana/config/grafana.ini
 splash/.env
 splash/ansible/inventory.tmpl
