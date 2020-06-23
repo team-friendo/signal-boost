@@ -39,11 +39,25 @@
         dest: "{{ homedir }}/.env"
       tags: clone
       when: secrets_method == "copy"
+
+    ########
+    # STOP #
+    ########
+
+    - name: Stop app
+    command: "docker-compose -f docker-compose-metrics.yml down -d"
+    args:
+      chdir: "{{ homedir }}"
+    tags: stop
   
+    ###########
+    # PREPARE #
+    ###########
+    
     # to ensure ACMEv2 compatibility
     # (as per, e.g.: https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion/issues/598)
     - name: Ensure we are running latest version of letsencrypt companion
-      command: "docker-compose pull letsencrypt"
+      command: "docker-compose -f docker-compose-metrics.yml pull letsencrypt"
       args:
         chdir: "{{ homedir }}"
       tags: prepare
