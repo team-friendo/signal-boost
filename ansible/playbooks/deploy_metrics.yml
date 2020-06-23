@@ -10,9 +10,25 @@
       homedir: /srv/signalboost
       host_url: "{{ lookup('env', 'SIGNALBOOST_HOST_URL') }}"
       api_token: "{{ lookup('env', 'SIGNALBOOST_API_TOKEN') }}"
-      secrets_method: copy
+      secrets_method: blackbox
   
     tasks:
+
+    ############
+    # ADD KEYS #
+    ############
+
+    - name: Load GPG Deploy Key
+      copy:
+        src: files/deploy_keys/signalboost_gpg_privkey.asc
+        dest: /keys/
+      tags: add_keys
+
+    - name: Import GPG deploy key to keystore
+      command: gpg --import signalboost_gpg_privkey.asc
+      args:
+        chdir: /keys
+      tags: add_keys
   
     #########
     # CLONE #
