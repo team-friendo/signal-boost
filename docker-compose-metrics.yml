@@ -19,7 +19,7 @@ services:
     networks:
       - default
     volumes:
-      - ./conf/prometheus/:/etc/prometheus/
+      - ./conf/prometheus/prometheus_prod.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus_data
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
