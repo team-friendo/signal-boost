@@ -36,7 +36,7 @@
     - name: Deploy environment file by copying local file
       copy:
         src: "{{ env_file }}"
-        dest: "{{ homedir }}/.env"
+        dest: "{{ homedir }}/.env.metrics"
       tags: clone
       when: secrets_method == "copy"
 
@@ -72,6 +72,6 @@
         chdir: "{{ homedir }}"
       register: docker_up_result
   
-    - debug:
-        var: docker_up_result
+    # - debug:
+    #     var: docker_up_result
   
