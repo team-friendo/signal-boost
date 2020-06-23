@@ -45,7 +45,7 @@
     ########
 
     - name: Stop app
-      command: "docker-compose -f docker-compose-metrics.yml down -d"
+      command: "docker-compose -f docker-compose-metrics.yml down"
       args:
         chdir: "{{ homedir }}"
       tags: stop
