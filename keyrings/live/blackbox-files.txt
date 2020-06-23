@@ -1,5 +1,6 @@
 .env
 .env.dev
+.env.metrics
 .env.pentest
 ansible/files/deploy_keys/.ssh/config
 ansible/files/deploy_keys/.ssh/id_sb_deploy
