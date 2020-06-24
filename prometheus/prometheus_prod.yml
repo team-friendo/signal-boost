@@ -1,7 +1,0 @@
-scrape_configs:
-  - job_name: 'signalboost-metrics'
-    scrape_interval: 5s
-    static_configs:
-    - targets: ['api.signalboost.info']
-    metrics_path: '/metrics'
-    bearer_token: 998fe521ca685f7a0fb81da01f8b52042ed55a16089029ecfe73aab871899a4c

@@ -13,11 +13,6 @@ const routesOf = async router => {
     ctx.body = { msg: 'hello world' }
   })
 
-  router.get('/healthcheck', async ctx => {
-    const result = await signal.isAlive()
-    merge(ctx, { status: httpStatusOf(get(result, 'status')) })
-  })
-
   router.get('/metrics', async ctx => {
     ctx.body = app.metricsRegistry.metrics()
   })
