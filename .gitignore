@@ -56,4 +56,5 @@ grafana_data
 /.env.dev
 /.env.pentest
 /.env.metrics
-/conf/grafana/config/grafana.ini
+/grafana/config/grafana.ini
+/prometheus/prometheus_dev.yml
