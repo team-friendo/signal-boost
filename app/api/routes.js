@@ -2,7 +2,6 @@
 const phoneNumberService = require('../registrar/phoneNumber')
 const channelRegistrar = require('../registrar/channel')
 const { get, find, merge } = require('lodash')
-const signal = require('../signal')
 const {
   twilio: { smsEndpoint },
 } = require('../config')
