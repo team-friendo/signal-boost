@@ -58,3 +58,4 @@ grafana_data
 /.env.metrics
 /grafana/config/grafana.ini
 /prometheus/prometheus_dev.yml
+/prometheus/prometheus_prod.yml

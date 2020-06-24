@@ -11,5 +11,6 @@ ansible/inventory.tmpl
 bin/get-machine
 grafana/config/grafana.ini
 prometheus/prometheus_dev.yml
+prometheus/prometheus_prod.yml
 splash/.env
 splash/ansible/inventory.tmpl
