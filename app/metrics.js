@@ -17,11 +17,18 @@ const run = () => {
   return { registry, relayableMessageCounter }
 }
 
+const incrementCounter = (counter, labels) => counter(...labels)
+
 const incrementRelayableMessageCounter = channel =>
   app.metrics.relayableMessageCounter.labels(channel.phoneNumber).inc()
+
+const COUNTERS = {
+  relayableMessage: incrementRelayableMessageCounter,
+}
 
 module.exports = {
   run,
   register,
-  incrementRelayableMessageCounter,
+  incrementCounter,
+  COUNTERS,
 }

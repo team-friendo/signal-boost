@@ -25,9 +25,16 @@ const sockResource = () => {
   return res
 }
 
-const metricsRegistryResource = () => ({
+const metricsResource = () => ({
   run: () => ({
-    metrics: () => Promise.resolve(),
+    registry: {
+      metrics: () => Promise.resolve(),
+    },
+    relayableMessageCounter: {
+      labels: () => ({
+        inc: () => ({}),
+      }),
+    },
   }),
 })
 
@@ -35,7 +42,7 @@ module.exports = {
   db: stubOf(dbResource),
   sock: stubOf(sockResource()),
   api: stubOf(defaultResource),
-  metricsRegistry: metricsRegistryResource(),
+  metrics: metricsResource(),
   jobs: stubOf(defaultResource),
   dispatcher: stubOf(defaultResource),
 }
