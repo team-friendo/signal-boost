@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { describe, it, beforeEach, afterEach, before } from 'mocha'
+import { describe, it, beforeEach, afterEach } from 'mocha'
 import sinon from 'sinon'
 import { times, merge } from 'lodash'
 import { languages } from '../../../app/language'
