@@ -30,10 +30,12 @@ const metricsResource = () => ({
     registry: {
       metrics: () => Promise.resolve(),
     },
-    relayableMessageCounter: {
-      labels: () => ({
-        inc: () => ({}),
-      }),
+    counters: {
+      RELAYABLE_MESSAGES: {
+        labels: () => ({
+          inc: () => ({}),
+        }),
+      },
     },
   }),
 })

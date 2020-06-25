@@ -3,31 +3,29 @@ const app = require('./index')
 
 const register = (registry, metric) => ({ ...metric, registers: [registry] })
 
+// { string: fn }
+const COUNTERS = {
+  RELAYABLE_MESSAGES: 'RELAYABLE_MESSAGES',
+}
+
 const run = () => {
   const registry = new prometheus.Registry()
   prometheus.collectDefaultMetrics({ registry })
 
-  const relayableMessageCounter = new prometheus.Counter({
-    name: 'relayable_messages',
-    help: 'Counts the number of relayed messages',
-    registers: [registry],
-    labelNames: ['channelPhoneNumber'],
-  })
+  const counters = {
+    RELAYABLE_MESSAGES: new prometheus.Counter({
+      name: 'relayable_messages',
+      help: 'Counts the number of relayed messages',
+      registers: [registry],
+      labelNames: ['channelPhoneNumber'],
+    }),
+  }
 
-  return { registry, relayableMessageCounter }
+  return { registry, counters }
 }
 
 // (fn, [string]) -> void
-const incrementCounter = (count, labels) => count(...labels)
-
-// (channel) -> void
-const incrementRelayableMessageCounter = channel =>
-  app.metrics.relayableMessageCounter.labels(channel.phoneNumber).inc()
-
-// { string: fn }
-const COUNTERS = {
-  relayableMessage: incrementRelayableMessageCounter,
-}
+const incrementCounter = (counter, labels) => app.metrics.counters[counter].labels(...labels).inc()
 
 module.exports = {
   run,
