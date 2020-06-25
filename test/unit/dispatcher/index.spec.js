@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { describe, it, beforeEach, afterEach, before } from 'mocha'
+import { describe, it, beforeEach, afterEach, before, after } from 'mocha'
 import sinon from 'sinon'
 import { times, merge } from 'lodash'
 import { languages } from '../../../app/language'
@@ -101,6 +101,8 @@ describe('dispatcher module', () => {
   })
 
   afterEach(() => sinon.restore())
+
+  after(() => app.stop())
 
   describe('handling an incoming message', () => {
     describe('deciding whether to dispatch a message', () => {
