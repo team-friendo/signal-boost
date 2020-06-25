@@ -17,11 +17,14 @@ const run = () => {
   return { registry, relayableMessageCounter }
 }
 
-const incrementCounter = (counter, labels) => counter(...labels)
+// (fn, [string]) -> void
+const incrementCounter = (count, labels) => count(...labels)
 
+// (channel) -> void
 const incrementRelayableMessageCounter = channel =>
   app.metrics.relayableMessageCounter.labels(channel.phoneNumber).inc()
 
+// { string: fn }
 const COUNTERS = {
   relayableMessage: incrementRelayableMessageCounter,
 }

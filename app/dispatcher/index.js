@@ -11,7 +11,7 @@ const safetyNumberService = require('../registrar/safetyNumbers')
 const { messagesIn } = require('./strings/messages')
 const { get, isEmpty, isNumber } = require('lodash')
 const app = require('../index')
-const { incrementCounter, COUNTERS } = require('../metrics')
+const metrics = require('../metrics')
 const {
   signal: { supportPhoneNumber },
 } = require('../config')
@@ -113,7 +113,7 @@ const dispatch = async (rawMessage, resendQueue) => {
 const relay = async (channel, sender, inboundMsg) => {
   const sdMessage = signal.parseOutboundSdMessage(inboundMsg)
   try {
-    incrementCounter(COUNTERS.relayableMessage, [channel])
+    metrics.incrementCounter(metrics.COUNTERS.relayableMessage, [channel])
     const dispatchable = { channel, sender, sdMessage }
     const commandResult = await executor.processCommand(dispatchable)
     return messenger.dispatch({ dispatchable, commandResult })
