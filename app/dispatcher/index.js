@@ -12,10 +12,7 @@ const { messagesIn } = require('./strings/messages')
 const { get, isEmpty, isNumber } = require('lodash')
 const app = require('../index')
 const metrics = require('../metrics')
-const {
-  signal: { supportPhoneNumber },
-  defaultLanguage,
-} = require('../config')
+const { defaultLanguage } = require('../config')
 
 /**
  * type Dispatchable = {
@@ -95,11 +92,14 @@ const dispatch = async (rawMessage, resendQueue) => {
   if (rateLimitedMessage) {
     const resendInterval = resend.enqueueResend(resendQueue, rateLimitedMessage)
     logger.log(
-      messagesIn(defaultLanguage).notifications.rateLimitOccurred(channel.name, resendInterval),
+      messagesIn(defaultLanguage).notifications.rateLimitOccurred(
+        channelPhoneNumber,
+        resendInterval,
+      ),
     )
     metrics.incrementCounter(metrics.counters.ERRORS, [
       metrics.errorTypes.RATE_LIMIT,
-      channel.phoneNumber,
+      channelPhoneNumber,
     ])
     return Promise.resolve()
   }
@@ -134,25 +134,6 @@ const relay = async (channel, sender, inboundMsg) => {
   } catch (e) {
     logger.error(e)
   }
-}
-
-// (Database, Socket, SdMessage, number) -> Promise<void>
-const notifyRateLimitedMessage = async (sdMessage, resendInterval) => {
-  const channel = await channelRepository.findDeep(supportPhoneNumber)
-  if (!channel) return Promise.resolve()
-
-  const recipients = channelRepository.getAdminMemberships(channel)
-  return Promise.all(
-    recipients.map(({ memberPhoneNumber, language }) =>
-      signal.sendMessage(
-        memberPhoneNumber,
-        sdMessageOf(
-          { phoneNumber: supportPhoneNumber },
-          messagesIn(language).notifications.rateLimitOccurred(sdMessage.username, resendInterval),
-        ),
-      ),
-    ),
-  )
 }
 
 const updateFingerprint = async updatableFingerprint => {

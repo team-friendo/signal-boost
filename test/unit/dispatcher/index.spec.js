@@ -215,12 +215,6 @@ describe('dispatcher module', () => {
     })
 
     describe('when message is a rate limit error notification', () => {
-      const supportChannel = deepChannelFactory({
-        phoneNumber: supportPhoneNumber,
-        memberships: ['EN', 'ES', 'FR'].map(language =>
-          adminMembershipFactory({ channelPhoneNumber: supportPhoneNumber, language }),
-        ),
-      })
       const recipientNumber = genPhoneNumber()
       const messageBody = '[foo]\nbar'
       const originalSdMessage = {
@@ -242,48 +236,14 @@ describe('dispatcher module', () => {
         },
       }
 
-      beforeEach(() => enqueueResendStub.returns(minResendInterval))
-
-      describe('and there is a support channel', () => {
-        beforeEach(async () => {
-          findDeepStub.returns(Promise.resolve(supportChannel))
-          await dispatch(JSON.stringify(sdErrorMessage), {})
-        })
-
-        it('enqueues the message for resending', () => {
-          expect(enqueueResendStub.getCall(0).args).to.eql([{}, originalSdMessage])
-        })
-
-        it('notifies admins of the support channel', () => {
-          supportChannel.memberships.forEach(({ memberPhoneNumber, language }, idx) =>
-            expect(sendMessageStub.getCall(idx).args).to.eql([
-              memberPhoneNumber,
-              sdMessageOf(
-                { phoneNumber: supportPhoneNumber },
-                messagesIn(language).notifications.rateLimitOccurred(
-                  channel.phoneNumber,
-                  minResendInterval,
-                ),
-              ),
-            ]),
-          )
-        })
+      beforeEach(async () => {
+        enqueueResendStub.returns(minResendInterval)
+        await dispatch(JSON.stringify(sdErrorMessage), {})
+        await wait(2 * socketDelay)
       })
 
-      describe('and there is not a support channel', () => {
-        beforeEach(async () => {
-          findDeepStub.returns(Promise.resolve(null))
-          await dispatch(JSON.stringify(sdErrorMessage), {})
-          await wait(2 * socketDelay)
-        })
-
-        it('enqueues the message for resending', () => {
-          expect(enqueueResendStub.getCall(0).args).to.eql([{}, originalSdMessage])
-        })
-
-        it('does not send any notifications', () => {
-          expect(sendMessageStub.callCount).to.eql(0)
-        })
+      it('enqueues the message for resending', () => {
+        expect(enqueueResendStub.getCall(0).args).to.eql([{}, originalSdMessage])
       })
     })
 
