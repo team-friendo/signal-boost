@@ -14,6 +14,7 @@ const app = require('../index')
 const metrics = require('../metrics')
 const {
   signal: { supportPhoneNumber },
+  defaultLanguage,
 } = require('../config')
 
 /**
@@ -92,9 +93,15 @@ const dispatch = async (rawMessage, resendQueue) => {
   // dispatch system-created messages
   const rateLimitedMessage = detectRateLimitedMessage(inboundMsg, resendQueue)
   if (rateLimitedMessage) {
-    metrics.incrementCounter(metrics.counters.ERRORS, [metrics.errorTypes.RATE_LIMIT])
     const resendInterval = resend.enqueueResend(resendQueue, rateLimitedMessage)
-    return notifyRateLimitedMessage(rateLimitedMessage, resendInterval)
+    logger.log(
+      messagesIn(defaultLanguage).notifications.rateLimitOccurred(channel.name, resendInterval),
+    )
+    metrics.incrementCounter(metrics.counters.ERRORS, [
+      metrics.errorTypes.RATE_LIMIT,
+      channel.phoneNumber,
+    ])
+    return Promise.resolve()
   }
 
   const newFingerprint = detectUpdatableFingerprint(inboundMsg)
