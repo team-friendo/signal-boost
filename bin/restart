@@ -7,4 +7,4 @@ cd /srv/signalboost
 docker-compose down && docker-compose up -d
 
 end=`date`
-echo "Restart complete at $end!"
+echo "Restart complete at: $end"
